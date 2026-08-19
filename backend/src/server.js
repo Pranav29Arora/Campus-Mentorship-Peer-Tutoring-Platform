@@ -53,6 +53,26 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Relay screen sharing state changes
+  socket.on('screen-share-change', ({ bookingId, isSharing }) => {
+    console.log(`[Signaling] Screen share changed in room ${bookingId} (isSharing: ${isSharing})`);
+    socket.to(bookingId).emit('peer-screen-share-change', {
+      fromSocketId: socket.id,
+      isSharing
+    });
+  });
+
+  // Relay in-call chat messages
+  socket.on('send-message', ({ bookingId, message, senderName, role, timestamp }) => {
+    console.log(`[Signaling] Chat message in room ${bookingId} from ${senderName}`);
+    socket.to(bookingId).emit('receive-message', {
+      message,
+      senderName,
+      role,
+      timestamp
+    });
+  });
+
   // Peer disconnecting
   socket.on('disconnect', () => {
     console.log(`[Signaling] Peer disconnected: ${socket.id}`);

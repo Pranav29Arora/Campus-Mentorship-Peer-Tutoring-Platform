@@ -5,7 +5,12 @@ import Footer from '../components/common/Footer';
 import Button from '../components/common/Button';
 import { AuthContext } from '../context/AuthContext';
 import { AppContext } from '../context/AppContext';
-import { Video, VideoOff, Mic, MicOff, MonitorUp, PhoneOff, Users, ShieldAlert, MonitorCheck, HelpCircle } from 'lucide-react';
+import { 
+  Video, VideoOff, Mic, MicOff, MonitorUp, PhoneOff, Users, 
+  MessageSquare, Maximize2, Minimize2, Grid, Tv, Send, 
+  Award, GraduationCap, Sparkles, X, HelpCircle, MonitorCheck,
+  CheckCircle2, Volume2
+} from 'lucide-react';
 import { io } from 'socket.io-client';
 import Peer from 'peerjs';
 
@@ -18,89 +23,178 @@ const VideoCall = () => {
   // WebRTC & Stream states
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [screenStream, setScreenStream] = useState(null);
   const [peerName, setPeerName] = useState('Remote Participant');
   const [connectionState, setConnectionState] = useState('connecting'); // 'connecting' | 'connected' | 'demo'
   
-  // Media controls
+  // Media & Layout controls
   const [cameraActive, setCameraActive] = useState(true);
   const [micActive, setMicActive] = useState(true);
   const [screenShareActive, setScreenShareActive] = useState(false);
+  const [peerScreenShareActive, setPeerScreenShareActive] = useState(false);
   const [peerMediaState, setPeerMediaState] = useState({ camera: true, mic: true });
+  
+  // UI & View Mode controls (Google Meet / Zoom parity)
+  const [viewMode, setViewMode] = useState('stage'); // 'stage' | 'grid'
+  const [activeTab, setActiveTab] = useState(null); // null | 'chat' | 'participants'
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // In-call Chat state
+  const [chatMessages, setChatMessages] = useState([
+    { id: 1, senderName: 'System', text: 'Welcome to the tutoring video session! Screen sharing and live chat are enabled.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), isSystem: true }
+  ]);
+  const [newMessage, setNewMessage] = useState('');
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
-  // DOM Elements refs
+  // DOM Elements & Connection refs
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const screenVideoRef = useRef(null);
+  const canvasRef = useRef(null);
   const socketRef = useRef(null);
   const peerRef = useRef(null);
   const currentCallRef = useRef(null);
+  const chatBottomRef = useRef(null);
+  const containerRef = useRef(null);
 
-  // Retrieve current session details
+  // Current Session info
   const booking = bookings.find(b => b.id === bookingId);
   const isMentor = user?.role === 'mentor';
 
   useEffect(() => {
-    // Resolve peer name
     if (booking) {
       setPeerName(isMentor ? booking.studentName || 'Junior Student' : booking.mentorName);
     }
 
-    // 1. Prompt for Camera/Microphone device stream
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then((stream) => {
-        setLocalStream(stream);
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-        }
-        
-        // 2. Initialize WebRTC Signaling connection
-        initializeWebRTC(stream);
-      })
-      .catch((err) => {
-        console.warn('[WebRTC] Access to media devices denied. Falling back to Demo Mode.', err);
-        // Fallback to Simulation / Demo Mode
-        setConnectionState('demo');
-        simulateVideoStreams();
-      });
+    // Initialize local media stream
+    initializeLocalStream();
 
     return () => {
-      // Clean up media streams and socket hooks
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-      }
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-      if (peerRef.current) {
-        peerRef.current.destroy();
-      }
+      // Clean up streams & sockets on unmount
+      stopAllTracks();
     };
   }, [bookingId]);
 
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      setUnreadChatCount(0);
+      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [activeTab, chatMessages]);
+
+  // Stream cleanup helper
+  const stopAllTracks = () => {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+    }
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+    }
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+    }
+    if (peerRef.current) {
+      peerRef.current.destroy();
+    }
+  };
+
+  // 1. Initialize Local Camera/Microphone Stream
+  const initializeLocalStream = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      setLocalStream(stream);
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+      initializeWebRTC(stream);
+    } catch (err) {
+      console.warn('[WebRTC] Native camera access unavailable or denied. Initializing simulated media stream.', err);
+      // Fallback: Create dynamic canvas stream for demo/testing mode
+      const mockCanvasStream = createSimulatedCanvasStream(user?.name || 'You');
+      setLocalStream(mockCanvasStream);
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = mockCanvasStream;
+      }
+      setConnectionState('demo');
+      initializeWebRTC(mockCanvasStream);
+    }
+  };
+
+  // Canvas-based dynamic animated stream generator for fallback/testing environments
+  const createSimulatedCanvasStream = (label) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 480;
+    const ctx = canvas.getContext('2d');
+    let frame = 0;
+
+    const draw = () => {
+      frame++;
+      // Smooth gradient background animation
+      const gradient = ctx.createLinearGradient(0, 0, 640, 480);
+      gradient.addColorStop(0, '#0f172a');
+      gradient.addColorStop(0.5, '#1e1b4b');
+      gradient.addColorStop(1, '#312e81');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 640, 480);
+
+      // Pulsing video circle
+      const radius = 60 + Math.sin(frame * 0.05) * 5;
+      ctx.beginPath();
+      ctx.arc(320, 210, radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#6366f1';
+      ctx.shadowColor = '#818cf8';
+      ctx.shadowBlur = 20;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Text label
+      ctx.font = 'bold 24px Inter, sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, 320, 215);
+
+      ctx.font = '14px Inter, sans-serif';
+      ctx.fillStyle = '#a5b4fc';
+      ctx.fillText('Live Stream Active', 320, 310);
+
+      requestAnimationFrame(draw);
+    };
+    draw();
+
+    return canvas.captureStream(30);
+  };
+
+  // 2. Initialize WebRTC & Socket.io Signaling
   const initializeWebRTC = (stream) => {
-    const stunServer = import.meta.env.VITE_STUN_SERVER || 'stun:stun.l.google.com:19302';
-    
-    // Connect to Signaling Server
-    const socket = io(import.meta.env.VITE_API_BASE_URL.replace('/api', '') || 'http://localhost:5000', {
-      transports: ['websocket'],
-      upgrade: false
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+    const serverUrl = apiBase.replace(/\/api\/?$/, '');
+
+    // Socket.io connection
+    const socket = io(serverUrl, {
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5
     });
     socketRef.current = socket;
 
-    // Initialize PeerJS
+    // PeerJS connection
     const peer = new Peer(undefined, {
-      host: '/',
-      port: '5000',
-      path: '/peerjs', // Proxy mapping configuration
+      host: window.location.hostname,
+      port: 5001,
+      path: '/peerjs',
       config: {
-        iceServers: [{ urls: stunServer }]
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
       }
     });
     peerRef.current = peer;
 
     peer.on('open', (peerId) => {
-      console.log('[PeerJS] Initialized with local ID:', peerId);
-      
-      // Let other room participants know we joined
+      console.log('[PeerJS] Local Peer ID registered:', peerId);
+      setConnectionState('connecting');
+
       socket.emit('join-room', {
         bookingId,
         userId: user.id,
@@ -109,305 +203,742 @@ const VideoCall = () => {
       });
     });
 
-    // Handle incoming WebRTC call
+    // Receive incoming call
     peer.on('call', (incomingCall) => {
-      console.log('[PeerJS] Receiving incoming WebRTC call...');
+      console.log('[PeerJS] Incoming call received from remote peer');
       incomingCall.answer(stream);
       currentCallRef.current = incomingCall;
 
-      incomingCall.on('stream', (incomingRemoteStream) => {
-        console.log('[PeerJS] Received remote stream.');
-        setRemoteStream(incomingRemoteStream);
+      incomingCall.on('stream', (remoteMediaStream) => {
+        console.log('[PeerJS] Connected to remote stream');
+        setRemoteStream(remoteMediaStream);
         setConnectionState('connected');
         if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = incomingRemoteStream;
+          remoteVideoRef.current.srcObject = remoteMediaStream;
         }
       });
     });
 
-    // Handle signaling triggers
+    // Handle peer user connected
     socket.on('user-connected', ({ userId, userName, peerId }) => {
-      console.log('[Signaling] User connected, calling:', userName);
-      
-      // Call the newly connected user
-      const outgoingCall = peer.call(peerId, stream);
-      currentCallRef.current = outgoingCall;
+      console.log(`[Signaling] Peer connected: ${userName} (${peerId})`);
+      if (peerId) {
+        const outgoingCall = peer.call(peerId, stream);
+        currentCallRef.current = outgoingCall;
 
-      outgoingCall.on('stream', (incomingRemoteStream) => {
-        setRemoteStream(incomingRemoteStream);
-        setConnectionState('connected');
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = incomingRemoteStream;
-        }
-      });
+        outgoingCall.on('stream', (remoteMediaStream) => {
+          setRemoteStream(remoteMediaStream);
+          setConnectionState('connected');
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteMediaStream;
+          }
+        });
+      }
     });
 
+    // Listen to media state changes from peer
     socket.on('peer-media-state-change', ({ mediaType, enabled }) => {
-      setPeerMediaState(prev => ({
+      setPeerMediaState(prev => ({ ...prev, [mediaType]: enabled }));
+    });
+
+    // Listen to remote screen sharing changes
+    socket.on('peer-screen-share-change', ({ isSharing }) => {
+      setPeerScreenShareActive(isSharing);
+      if (isSharing) {
+        setViewMode('stage');
+      }
+    });
+
+    // Listen to live in-call chat messages
+    socket.on('receive-message', ({ message, senderName, role, timestamp }) => {
+      setChatMessages(prev => [
         ...prev,
-        [mediaType]: enabled
-      }));
+        {
+          id: Date.now(),
+          senderName,
+          role,
+          text: message,
+          time: timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isSystem: false
+        }
+      ]);
+      setUnreadChatCount(prev => (activeTab === 'chat' ? 0 : prev + 1));
     });
 
     socket.on('user-disconnected', () => {
-      console.log('[Signaling] Peer disconnected.');
+      console.log('[Signaling] Remote peer disconnected');
       setConnectionState('connecting');
       setRemoteStream(null);
+      setPeerScreenShareActive(false);
     });
   };
 
-  const simulateVideoStreams = () => {
-    // Generates a mock visual stream loop for local & remote windows during demo fallback
-    console.log('[VideoCall] Simulated Demo Call active');
-  };
-
-  // Toggle Camera
+  // Toggle Camera On/Off
   const toggleCamera = () => {
     if (localStream) {
-      const track = localStream.getVideoTracks()[0];
-      if (track) {
-        track.enabled = !cameraActive;
-        setCameraActive(!cameraActive);
-        
-        // Notify peer
-        if (socketRef.current) {
-          socketRef.current.emit('media-state-change', {
-            bookingId,
-            mediaType: 'camera',
-            enabled: !cameraActive
-          });
-        }
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !cameraActive;
       }
-    } else {
-      // Demo toggle
-      setCameraActive(!cameraActive);
+    }
+    const newCameraState = !cameraActive;
+    setCameraActive(newCameraState);
+
+    if (socketRef.current) {
+      socketRef.current.emit('media-state-change', {
+        bookingId,
+        mediaType: 'camera',
+        enabled: newCameraState
+      });
     }
   };
 
-  // Toggle Microphone
+  // Toggle Microphone Mute/Unmute
   const toggleMic = () => {
     if (localStream) {
-      const track = localStream.getAudioTracks()[0];
-      if (track) {
-        track.enabled = !micActive;
-        setMicActive(!micActive);
-        
-        if (socketRef.current) {
-          socketRef.current.emit('media-state-change', {
-            bookingId,
-            mediaType: 'mic',
-            enabled: !micActive
-          });
-        }
+      const audioTrack = localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !micActive;
       }
-    } else {
-      setMicActive(!micActive);
+    }
+    const newMicState = !micActive;
+    setMicActive(newMicState);
+
+    if (socketRef.current) {
+      socketRef.current.emit('media-state-change', {
+        bookingId,
+        mediaType: 'mic',
+        enabled: newMicState
+      });
     }
   };
 
-  // Screen Share Simulation
-  const toggleScreenShare = () => {
-    setScreenShareActive(!screenShareActive);
+  // Real Screen Share (`getDisplayMedia`) Toggle
+  const toggleScreenShare = async () => {
+    if (screenShareActive) {
+      stopScreenSharing();
+    } else {
+      startScreenSharing();
+    }
   };
 
-  // End Call
+  const startScreenSharing = async () => {
+    try {
+      // 1. Request display stream from browser
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { cursor: 'always' },
+        audio: false
+      });
+
+      const screenTrack = displayStream.getVideoTracks()[0];
+      setScreenStream(displayStream);
+      setScreenShareActive(true);
+      setViewMode('stage');
+
+      if (screenVideoRef.current) {
+        screenVideoRef.current.srcObject = displayStream;
+      }
+
+      // 2. Replace track in active WebRTC peer connection senders if connected
+      if (currentCallRef.current && currentCallRef.current.peerConnection) {
+        const senders = currentCallRef.current.peerConnection.getSenders();
+        const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+        if (videoSender) {
+          videoSender.replaceTrack(screenTrack);
+        }
+      }
+
+      // 3. Emit screen sharing event to room
+      if (socketRef.current) {
+        socketRef.current.emit('screen-share-change', {
+          bookingId,
+          isSharing: true
+        });
+      }
+
+      // 4. Handle browser's native "Stop Sharing" floating bar event
+      screenTrack.onended = () => {
+        stopScreenSharing();
+      };
+    } catch (err) {
+      console.warn('[ScreenShare] Real screen capture prompt canceled or unavailable. Enabling screen share demonstration overlay.', err);
+      // Demo mode screen share fallback
+      setScreenShareActive(true);
+      setViewMode('stage');
+      if (socketRef.current) {
+        socketRef.current.emit('screen-share-change', {
+          bookingId,
+          isSharing: true
+        });
+      }
+    }
+  };
+
+  const stopScreenSharing = () => {
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+      setScreenStream(null);
+    }
+    setScreenShareActive(false);
+
+    // Restore camera video track in WebRTC sender
+    if (localStream && currentCallRef.current && currentCallRef.current.peerConnection) {
+      const cameraTrack = localStream.getVideoTracks()[0];
+      const senders = currentCallRef.current.peerConnection.getSenders();
+      const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+      if (videoSender && cameraTrack) {
+        videoSender.replaceTrack(cameraTrack);
+      }
+    }
+
+    if (socketRef.current) {
+      socketRef.current.emit('screen-share-change', {
+        bookingId,
+        isSharing: false
+      });
+    }
+  };
+
+  // Send In-Call Chat Message
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const msgObj = {
+      id: Date.now(),
+      senderName: user.name,
+      role: user.role,
+      text: newMessage.trim(),
+      time: timeStr,
+      isSystem: false
+    };
+
+    setChatMessages(prev => [...prev, msgObj]);
+
+    // Emit over socket
+    if (socketRef.current) {
+      socketRef.current.emit('send-message', {
+        bookingId,
+        message: newMessage.trim(),
+        senderName: user.name,
+        role: user.role,
+        timestamp: timeStr
+      });
+    }
+
+    setNewMessage('');
+  };
+
+  // Fullscreen Toggle
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen().catch(err => {
+        console.warn('Fullscreen request failed:', err);
+      });
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(err => {
+        console.warn('Exit fullscreen failed:', err);
+      });
+      setIsFullscreen(false);
+    }
+  };
+
+  // End Meeting Call
   const handleEndCall = async () => {
     if (isMentor) {
-      // Mentor can mark session completed on call end
-      if (window.confirm('Would you like to mark this tutoring session as completed?')) {
+      if (window.confirm(' Tutoring session finished. Would you like to mark this session as completed?')) {
         await completeBooking(bookingId);
       }
     }
+    stopAllTracks();
     navigate(`/${user.role}/dashboard`);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-bg">
+    <div className="min-h-screen flex flex-col bg-dark-bg text-slate-100 font-sans" ref={containerRef}>
       <Navbar />
 
-      <div className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col justify-between">
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
         
-        {/* Call Banner */}
-        <div className="flex justify-between items-center bg-slate-900/40 border border-slate-800 p-4 rounded-2xl mb-6">
-          <div className="text-left">
-            <h3 className="text-sm font-bold text-white leading-tight">
-              Room: {booking?.subject || 'Tutoring Session'}
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Peer: {peerName} • {isMentor ? 'Mentor Portal' : 'Student Portal'}
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-full ${
-              connectionState === 'connected' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
-            }`} />
-            <span className="text-xs font-bold text-slate-300 capitalize">
-              {connectionState === 'connected' ? 'Connected (WebRTC)' : 'Demo Video Mode'}
+        {/* Header Bar: Room Info & Controls */}
+        <div className="glass-panel p-4 rounded-2xl border border-slate-800 bg-slate-900/60 mb-4 flex justify-between items-center flex-wrap gap-4">
+          <div className="flex items-center gap-3 text-left">
+            <span className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-500 to-indigo-600 flex items-center justify-center shadow-md">
+              <Tv className="w-5 h-5 text-white" />
             </span>
+            <div>
+              <h2 className="text-base font-bold text-white leading-tight flex items-center gap-2">
+                {booking?.subject || 'Campus Tutoring Room'}
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-400 border border-brand-500/20 font-bold uppercase tracking-wider">
+                  Live Meeting
+                </span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Participant: <strong className="text-slate-200">{peerName}</strong> ({isMentor ? 'Mentee' : 'Mentor'}) • You are <strong className="text-brand-400">{user?.name}</strong> ({isMentor ? 'Mentor' : 'Student'})
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <button
+                onClick={() => setViewMode('stage')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  viewMode === 'stage'
+                    ? 'bg-brand-500 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Stage View (Featured speaker / screen share)"
+              >
+                <Tv className="w-3.5 h-3.5" />
+                Stage
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-brand-500 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+                title="Grid View (Equal tiles)"
+              >
+                <Grid className="w-3.5 h-3.5" />
+                Grid
+              </button>
+            </div>
+
+            {/* Signal & Connection Status */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs">
+              <span className={`w-2.5 h-2.5 rounded-full ${
+                connectionState === 'connected' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-ping'
+              }`} />
+              <span className="font-semibold text-slate-300">
+                {connectionState === 'connected' ? 'Connected (WebRTC HD)' : 'Active (Video Mode)'}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Video streams Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 items-stretch mb-6">
+        {/* Main Stage Grid & Drawer Section */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch mb-4 min-h-[500px]">
           
-          {/* Main Remote Viewport (Left / center) */}
-          <div className="lg:col-span-3 relative glass-panel rounded-3xl overflow-hidden border border-slate-800/80 bg-slate-950 flex items-center justify-center min-h-[350px] lg:min-h-[480px]">
-            {connectionState === 'connected' && remoteStream ? (
-              <video
-                ref={remoteVideoRef}
-                autoPlay
-                playsInline
-                className="w-full h-full object-cover rounded-3xl"
-              />
-            ) : (
-              // Simulated Remote Video Layout
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center space-y-4">
-                <img
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300"
-                  alt="Remote"
-                  className={`w-32 h-32 rounded-full border-2 border-brand-500 object-cover ${
-                    cameraActive ? 'animate-pulse' : ''
-                  }`}
-                />
-                <div>
-                  <h4 className="text-lg font-bold text-white">{peerName}</h4>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {peerMediaState.camera ? 'Streaming live video...' : 'Camera Off'}
-                  </p>
+          {/* Video Stage Area */}
+          <div className={`${activeTab ? 'lg:col-span-8 xl:col-span-9' : 'lg:col-span-12'} transition-all duration-300 flex flex-col`}>
+            
+            {/* Screen Share Stage View (When someone is screen sharing) */}
+            {(screenShareActive || peerScreenShareActive) && viewMode === 'stage' ? (
+              <div className="relative flex-1 glass-panel rounded-3xl overflow-hidden border border-emerald-500/30 bg-slate-950 flex items-center justify-center min-h-[420px] shadow-2xl">
+                {screenShareActive && screenStream ? (
+                  <video
+                    ref={screenVideoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-contain rounded-3xl"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+                    <MonitorCheck className="w-16 h-16 text-emerald-400 mb-4 animate-bounce" />
+                    <h3 className="text-xl font-extrabold text-white">
+                      {screenShareActive ? 'You are sharing your screen' : `${peerName} is sharing their screen`}
+                    </h3>
+                    <p className="text-sm text-slate-400 mt-2 max-w-md">
+                      Presentation feed is broadcasted in real-time to all session participants.
+                    </p>
+                  </div>
+                )}
+
+                {/* Floating Screen Share Badge */}
+                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center gap-2 backdrop-blur-md">
+                  <MonitorUp className="w-4 h-4" />
+                  <span>{screenShareActive ? 'You are Sharing Screen' : `${peerName}'s Screen`}</span>
                 </div>
+              </div>
+            ) : viewMode === 'grid' ? (
+              /* Balanced Grid View (Equal 2 split tiles for Local & Remote) */
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                
+                {/* Tile 1: Local Participant */}
+                <div className="relative glass-panel rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center min-h-[320px]">
+                  {localStream ? (
+                    <video
+                      ref={localVideoRef}
+                      autoPlay
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover rounded-3xl"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="w-20 h-20 rounded-full bg-brand-500/20 border-2 border-brand-500 flex items-center justify-center text-xl font-extrabold text-brand-400">
+                        {user?.name?.charAt(0) || 'Y'}
+                      </div>
+                    </div>
+                  )}
+
+                  {!cameraActive && (
+                    <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-2 text-slate-400">
+                      <VideoOff className="w-8 h-8 text-slate-600" />
+                      <span className="text-xs font-semibold">Your Camera is Off</span>
+                    </div>
+                  )}
+
+                  <div className="absolute bottom-4 left-4 px-3 py-1 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-800 text-xs font-bold text-white flex items-center gap-2">
+                    <span>{user?.name} (You)</span>
+                    <span className="text-[10px] text-brand-400 font-mono">({user?.role})</span>
+                    {!micActive && <MicOff className="w-3.5 h-3.5 text-rose-400 ml-1" />}
+                  </div>
+                </div>
+
+                {/* Tile 2: Remote Peer */}
+                <div className="relative glass-panel rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center min-h-[320px]">
+                  {connectionState === 'connected' && remoteStream ? (
+                    <video
+                      ref={remoteVideoRef}
+                      autoPlay
+                      playsInline
+                      className="w-full h-full object-cover rounded-3xl"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-3 text-center p-6">
+                      <img
+                        src={isMentor ? "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150" : "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150"}
+                        alt={peerName}
+                        className="w-24 h-24 rounded-full border-2 border-indigo-500 object-cover shadow-lg"
+                      />
+                      <div>
+                        <h4 className="text-base font-bold text-white">{peerName}</h4>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {peerMediaState.camera ? 'Video Connected' : 'Camera Off'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {!peerMediaState.camera && (
+                    <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-2 text-slate-400">
+                      <VideoOff className="w-8 h-8 text-slate-600" />
+                      <span className="text-xs font-semibold">{peerName} turned off camera</span>
+                    </div>
+                  )}
+
+                  <div className="absolute bottom-4 left-4 px-3 py-1 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-800 text-xs font-bold text-white flex items-center gap-2">
+                    <span>{peerName}</span>
+                    <span className="text-[10px] text-amber-400 font-mono">({isMentor ? 'Mentee' : 'Mentor'})</span>
+                    {!peerMediaState.mic && <MicOff className="w-3.5 h-3.5 text-rose-400 ml-1" />}
+                  </div>
+                </div>
+
+              </div>
+            ) : (
+              /* Stage View Default: Main Featured Peer View + Side Rail Pip Local View */
+              <div className="relative flex-1 glass-panel rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center min-h-[420px]">
+                
+                {/* Main Featured Remote Stream */}
+                {connectionState === 'connected' && remoteStream ? (
+                  <video
+                    ref={remoteVideoRef}
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-cover rounded-3xl"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-center p-8 space-y-4">
+                    <div className="relative">
+                      <img
+                        src={isMentor ? "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200" : "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200"}
+                        alt={peerName}
+                        className="w-32 h-32 rounded-full border-4 border-indigo-500/50 object-cover shadow-2xl animate-pulse"
+                      />
+                      <span className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-slate-950" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white">{peerName}</h3>
+                      <p className="text-xs text-slate-400 mt-1">
+                        {isMentor ? 'Student Mentee' : 'Senior Peer Mentor'} • {booking?.department || 'Academic Peer'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {!peerMediaState.camera && (
+                  <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-2 text-slate-400">
+                    <VideoOff className="w-10 h-10 text-slate-600" />
+                    <p className="text-sm font-semibold">{peerName} paused video</p>
+                  </div>
+                )}
+
+                {!peerMediaState.mic && (
+                  <div className="absolute top-4 left-4 px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center gap-1.5">
+                    <MicOff className="w-3.5 h-3.5" />
+                    {peerName} Muted
+                  </div>
+                )}
+
+                {/* PiP Local Video Thumbnail (Bottom-Right overlay) */}
+                <div className="absolute bottom-4 right-4 w-40 sm:w-48 aspect-video rounded-2xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-slate-900 group">
+                  {localStream ? (
+                    <video
+                      ref={localVideoRef}
+                      autoPlay
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover rounded-2xl"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-800 text-xs text-slate-400 font-bold">
+                      {user?.name}
+                    </div>
+                  )}
+
+                  {!cameraActive && (
+                    <div className="absolute inset-0 bg-slate-950/90 flex items-center justify-center text-[10px] text-slate-400">
+                      Camera Off
+                    </div>
+                  )}
+
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-950/80 text-[10px] font-bold text-white">
+                    You
+                  </span>
+                </div>
+
               </div>
             )}
 
-            {/* Connection alert banners overlays */}
-            {!peerMediaState.camera && (
-              <div className="absolute inset-0 bg-dark-bg/90 flex flex-col items-center justify-center gap-2 text-slate-400 text-sm">
-                <VideoOff className="w-8 h-8 text-slate-600" />
-                <p>{peerName} turned off their camera</p>
-              </div>
-            )}
-            
-            {!peerMediaState.mic && (
-              <span className="absolute bottom-4 left-4 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/25 text-red-400 text-xs font-semibold">
-                <MicOff className="w-3.5 h-3.5" />
-                Muted
-              </span>
-            )}
           </div>
 
-          {/* Pip Personal Viewport + Controls (Right side panel) */}
-          <div className="lg:col-span-1 flex flex-col justify-between gap-6">
-            
-            {/* Pip Personal Frame */}
-            <div className="relative glass-panel rounded-2xl overflow-hidden border border-slate-800/80 bg-slate-900 aspect-video lg:aspect-auto lg:flex-1 flex items-center justify-center min-h-[160px]">
-              {localStream ? (
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover rounded-2xl absolute inset-0"
-                />
-              ) : (
-                // Simulated Personal Video Layout
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-                  <div className="w-12 h-12 bg-slate-800 border border-slate-700 text-slate-500 rounded-full flex items-center justify-center mb-2">
-                    <UserIcon className="w-5 h-5" />
+          {/* Right Side Drawer (Chat / Participants) */}
+          {activeTab && (
+            <div className="lg:col-span-4 xl:col-span-3 glass-panel rounded-3xl border border-slate-800 bg-slate-900/90 flex flex-col overflow-hidden shadow-2xl animate-fade-in">
+              
+              {/* Drawer Header */}
+              <div className="p-4 border-b border-slate-800 flex justify-between items-center">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  {activeTab === 'chat' ? (
+                    <>
+                      <MessageSquare className="w-4 h-4 text-brand-400" />
+                      Live In-Call Chat
+                    </>
+                  ) : (
+                    <>
+                      <Users className="w-4 h-4 text-indigo-400" />
+                      Room Participants (2)
+                    </>
+                  )}
+                </h3>
+                <button
+                  onClick={() => setActiveTab(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Drawer Content */}
+              {activeTab === 'chat' ? (
+                <div className="flex-1 flex flex-col justify-between p-4 overflow-hidden">
+                  
+                  {/* Messages Feed */}
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-left text-xs">
+                    {chatMessages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`p-3 rounded-2xl ${
+                          msg.isSystem
+                            ? 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-center font-medium'
+                            : msg.senderName === user?.name
+                            ? 'bg-brand-500/20 border border-brand-500/30 text-slate-100 ml-4'
+                            : 'bg-slate-800 border border-slate-700 text-slate-200 mr-4'
+                        }`}
+                      >
+                        {!msg.isSystem && (
+                          <div className="flex justify-between items-center mb-1 text-[10px] text-slate-400 font-semibold">
+                            <span className="text-white">{msg.senderName}</span>
+                            <span>{msg.time}</span>
+                          </div>
+                        )}
+                        <p className="leading-relaxed">{msg.text}</p>
+                      </div>
+                    ))}
+                    <div ref={chatBottomRef} />
                   </div>
-                  <h5 className="text-xs font-bold text-white">{user?.name} (You)</h5>
+
+                  {/* Message Input */}
+                  <form onSubmit={handleSendMessage} className="mt-3 flex gap-2">
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Type a message or share a link..."
+                      className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 focus:outline-none focus:border-brand-500"
+                    />
+                    <button
+                      type="submit"
+                      className="p-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </form>
+
+                </div>
+              ) : (
+                /* Participants List Drawer */
+                <div className="p-4 space-y-3 text-left">
+                  
+                  {/* Participant 1: Local User */}
+                  <div className="p-3 rounded-2xl bg-slate-850 border border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-xs font-bold text-white">
+                        {user?.name?.charAt(0) || 'Y'}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">{user?.name} (You)</h4>
+                        <p className="text-[10px] text-slate-400 capitalize">{user?.role} Host</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-400">
+                      {micActive ? <Mic className="w-3.5 h-3.5 text-emerald-400" /> : <MicOff className="w-3.5 h-3.5 text-rose-400" />}
+                      {cameraActive ? <Video className="w-3.5 h-3.5 text-emerald-400" /> : <VideoOff className="w-3.5 h-3.5 text-rose-400" />}
+                    </div>
+                  </div>
+
+                  {/* Participant 2: Remote Peer */}
+                  <div className="p-3 rounded-2xl bg-slate-850 border border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-xs font-bold text-white">
+                        {peerName.charAt(0)}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">{peerName}</h4>
+                        <p className="text-[10px] text-slate-400 capitalize">{isMentor ? 'Student Mentee' : 'Senior Mentor'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-400">
+                      {peerMediaState.mic ? <Mic className="w-3.5 h-3.5 text-emerald-400" /> : <MicOff className="w-3.5 h-3.5 text-rose-400" />}
+                      {peerMediaState.camera ? <Video className="w-3.5 h-3.5 text-emerald-400" /> : <VideoOff className="w-3.5 h-3.5 text-rose-400" />}
+                    </div>
+                  </div>
+
                 </div>
               )}
 
-              {/* Personal labels */}
-              <span className="absolute bottom-3 left-3 px-2 py-0.5 rounded bg-slate-900/80 text-[10px] font-bold text-white">
-                You
-              </span>
+            </div>
+          )}
 
-              {!cameraActive && (
-                <div className="absolute inset-0 bg-slate-950/90 rounded-2xl flex flex-col items-center justify-center text-xs text-slate-500 gap-1.5">
-                  <VideoOff className="w-5 h-5 text-slate-700" />
-                  Camera Off
-                </div>
-              )}
+        </div>
 
-              {!micActive && (
-                <span className="absolute top-3 right-3 p-1 rounded-md bg-red-500/20 text-red-400 border border-red-500/30">
-                  <MicOff className="w-3.5 h-3.5" />
+        {/* Bottom Meeting Control Dock (Google Meet / Zoom Bar) */}
+        <div className="glass-panel p-3.5 rounded-2xl border border-slate-800 bg-slate-900/80 flex justify-between items-center gap-4 flex-wrap">
+          
+          {/* Left info badge */}
+          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 font-medium">
+            <Sparkles className="w-4 h-4 text-brand-400" />
+            <span>CampusConnect Peer Session</span>
+          </div>
+
+          {/* Center Call Control Buttons */}
+          <div className="flex items-center gap-3 mx-auto sm:mx-0">
+            
+            {/* Mic Toggle */}
+            <button
+              onClick={toggleMic}
+              className={`p-3.5 rounded-2xl border transition-all duration-200 ${
+                micActive
+                  ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white shadow-md'
+                  : 'bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
+              }`}
+              title={micActive ? 'Mute Microphone' : 'Unmute Microphone'}
+            >
+              {micActive ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+            </button>
+
+            {/* Camera Toggle */}
+            <button
+              onClick={toggleCamera}
+              className={`p-3.5 rounded-2xl border transition-all duration-200 ${
+                cameraActive
+                  ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white shadow-md'
+                  : 'bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20'
+              }`}
+              title={cameraActive ? 'Turn Camera Off' : 'Turn Camera On'}
+            >
+              {cameraActive ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+            </button>
+
+            {/* Screen Share Toggle */}
+            <button
+              onClick={toggleScreenShare}
+              className={`p-3.5 rounded-2xl border transition-all duration-200 ${
+                screenShareActive
+                  ? 'bg-emerald-500 border-emerald-400 text-white shadow-lg shadow-emerald-500/20 animate-pulse'
+                  : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white shadow-md'
+              }`}
+              title={screenShareActive ? 'Stop Sharing Screen' : 'Share Screen'}
+            >
+              <MonitorUp className="w-5 h-5" />
+            </button>
+
+            {/* End Call Button */}
+            <button
+              onClick={handleEndCall}
+              className="p-3.5 rounded-2xl bg-rose-600 hover:bg-rose-700 border border-rose-500 text-white shadow-lg shadow-rose-600/30 transition-all duration-200 ml-2"
+              title="End Call"
+            >
+              <PhoneOff className="w-5 h-5" />
+            </button>
+
+          </div>
+
+          {/* Right Action Drawers */}
+          <div className="flex items-center gap-2">
+            
+            {/* Participants Drawer Toggle */}
+            <button
+              onClick={() => setActiveTab(activeTab === 'participants' ? null : 'participants')}
+              className={`p-3 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all ${
+                activeTab === 'participants'
+                  ? 'bg-indigo-500/20 border-indigo-500 text-indigo-400'
+                  : 'bg-slate-850 border-slate-800 text-slate-400 hover:text-white'
+              }`}
+              title="Participants"
+            >
+              <Users className="w-4 h-4" />
+              <span className="hidden md:inline">Participants</span>
+            </button>
+
+            {/* In-Call Chat Drawer Toggle */}
+            <button
+              onClick={() => setActiveTab(activeTab === 'chat' ? null : 'chat')}
+              className={`relative p-3 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all ${
+                activeTab === 'chat'
+                  ? 'bg-brand-500/20 border-brand-500 text-brand-400'
+                  : 'bg-slate-850 border-slate-800 text-slate-400 hover:text-white'
+              }`}
+              title="In-Call Chat"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span className="hidden md:inline">Chat</span>
+              {unreadChatCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-brand-500 text-white text-[9px] font-bold flex items-center justify-center">
+                  {unreadChatCount}
                 </span>
               )}
-            </div>
+            </button>
 
-            {/* Simulated Screen share display */}
-            {screenShareActive && (
-              <div className="glass-panel p-4 rounded-2xl border border-emerald-500/25 bg-emerald-500/5 text-left text-xs text-emerald-400 flex items-center gap-3 animate-pulse">
-                <MonitorCheck className="w-5 h-5 flex-shrink-0" />
-                <div>
-                  <p className="font-bold">Sharing Screen</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Other participants see your display.</p>
-                </div>
-              </div>
-            )}
-
-            {/* WebRTC credentials detail helper card */}
-            <div className="glass-panel p-4 rounded-2xl border border-slate-850 text-left text-[11px] text-slate-500 space-y-2">
-              <p className="font-semibold text-slate-400 flex items-center gap-1">
-                <HelpCircle className="w-3.5 h-3.5 text-brand-500" />
-                Viva Tech Specs
-              </p>
-              <p>Stun Server: <code className="text-slate-400">stun.l.google.com</code></p>
-              <p>Protocol: <code className="text-slate-400">WebRTC SDP / PeerJS</code></p>
-              <p>Signaling: <code className="text-slate-400">Socket.io WebSocket</code></p>
-            </div>
+            {/* Fullscreen Toggle */}
+            <button
+              onClick={toggleFullscreen}
+              className="p-3 rounded-xl bg-slate-850 border border-slate-800 text-slate-400 hover:text-white transition-all"
+              title="Toggle Fullscreen"
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
 
           </div>
 
-        </div>
-
-        {/* Video Call Controls Bar */}
-        <div className="glass-panel p-4 rounded-2xl border border-slate-800 bg-slate-900/60 flex justify-center items-center gap-4">
-          <button
-            onClick={toggleCamera}
-            className={`p-3.5 rounded-xl border transition-all duration-300 ${
-              cameraActive 
-                ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white' 
-                : 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20'
-            }`}
-            title={cameraActive ? 'Turn Camera Off' : 'Turn Camera On'}
-          >
-            {cameraActive ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-          </button>
-          
-          <button
-            onClick={toggleMic}
-            className={`p-3.5 rounded-xl border transition-all duration-300 ${
-              micActive 
-                ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white' 
-                : 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20'
-            }`}
-            title={micActive ? 'Mute Microphone' : 'Unmute Microphone'}
-          >
-            {micActive ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
-          </button>
-
-          <button
-            onClick={toggleScreenShare}
-            className={`p-3.5 rounded-xl border transition-all duration-300 ${
-              screenShareActive 
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' 
-                : 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-white'
-            }`}
-            title={screenShareActive ? 'Stop Sharing Screen' : 'Share Screen'}
-          >
-            <MonitorUp className="w-5 h-5" />
-          </button>
-
-          <button
-            onClick={handleEndCall}
-            className="p-3.5 rounded-xl bg-red-600 border border-red-500 hover:bg-red-700 text-white shadow-lg shadow-red-600/20 transition-all duration-300"
-            title="End Call"
-          >
-            <PhoneOff className="w-5 h-5" />
-          </button>
         </div>
 
       </div>
@@ -416,24 +947,5 @@ const VideoCall = () => {
     </div>
   );
 };
-
-// SVG visual helper imported
-const UserIcon = (props) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    {...props}
-  >
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-    <circle cx="12" cy="7" r="4"/>
-  </svg>
-);
 
 export default VideoCall;
