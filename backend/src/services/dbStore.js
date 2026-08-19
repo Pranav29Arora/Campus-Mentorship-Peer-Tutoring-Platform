@@ -6,6 +6,7 @@ const initialUsers = [
     id: 'user001',
     name: 'Rahul Sharma',
     email: 'rahul@example.com',
+    rollNumber: '20BCSE014',
     passwordHash: '$2a$10$Xm5jSgGgR/t.Oa52v7oI0u7hL78D3G28aL893mH8P.gR2D03mU0S.', // bcrypt for 'password123'
     role: 'mentor',
     department: 'Computer Science',
@@ -18,6 +19,7 @@ const initialUsers = [
     id: 'user002',
     name: 'Priya Singh',
     email: 'priya@example.com',
+    rollNumber: '21BIT028',
     passwordHash: '$2a$10$Xm5jSgGgR/t.Oa52v7oI0u7hL78D3G28aL893mH8P.gR2D03mU0S.',
     role: 'mentor',
     department: 'Information Technology',
@@ -30,6 +32,7 @@ const initialUsers = [
     id: 'user003',
     name: 'Amit Patel',
     email: 'amit@example.com',
+    rollNumber: '20BECE045',
     passwordHash: '$2a$10$Xm5jSgGgR/t.Oa52v7oI0u7hL78D3G28aL893mH8P.gR2D03mU0S.',
     role: 'mentor',
     department: 'Electronics',
@@ -42,6 +45,7 @@ const initialUsers = [
     id: 'student_demo',
     name: 'Arjun Mehta',
     email: 'student@campusconnect.com',
+    rollNumber: '22BCSE101',
     passwordHash: '$2a$10$Y1s1gT2F3G4h5J6k7L8m9oOpPqQrRsStTuUvVwWxXyYzZ12345678', // bcrypt placeholder
     role: 'student',
     department: 'Computer Science',
@@ -54,6 +58,7 @@ const initialUsers = [
     id: 'mentor_demo',
     name: 'Rahul Sharma', // Linked to user001
     email: 'mentor@campusconnect.com',
+    rollNumber: '20BCSE014',
     passwordHash: '$2a$10$Y1s1gT2F3G4h5J6k7L8m9oOpPqQrRsStTuUvVwWxXyYzZ12345678',
     role: 'mentor',
     department: 'Computer Science',
@@ -66,6 +71,7 @@ const initialUsers = [
     id: 'admin_demo',
     name: 'Prof. S. R. Iyer',
     email: 'admin@campusconnect.com',
+    rollNumber: 'ADMIN-FAC-01',
     passwordHash: '$2a$10$Y1s1gT2F3G4h5J6k7L8m9oOpPqQrRsStTuUvVwWxXyYzZ12345678',
     role: 'admin',
     department: 'Administration',
@@ -82,6 +88,7 @@ const initialMentors = [
     userId: 'user001', // Rahul Sharma
     name: 'Rahul Sharma',
     email: 'rahul@example.com',
+    rollNumber: '20BCSE014',
     department: 'Computer Science',
     year: 4,
     avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',
@@ -96,6 +103,7 @@ const initialMentors = [
     userId: 'user002', // Priya Singh
     name: 'Priya Singh',
     email: 'priya@example.com',
+    rollNumber: '21BIT028',
     department: 'Information Technology',
     year: 3,
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
@@ -110,6 +118,7 @@ const initialMentors = [
     userId: 'user003', // Amit Patel
     name: 'Amit Patel',
     email: 'amit@example.com',
+    rollNumber: '20BECE045',
     department: 'Electronics',
     year: 4,
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',

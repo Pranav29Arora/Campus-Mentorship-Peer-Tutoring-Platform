@@ -12,6 +12,7 @@ const Register = () => {
   const { register } = useContext(AuthContext);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [rollNumber, setRollNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('student');
@@ -35,8 +36,13 @@ const Register = () => {
     setValidationError('');
 
     // Input Validation
-    if (!name || !email || !password || !confirmPassword || !role) {
+    if (!name.trim() || !email.trim() || !password || !confirmPassword || !role) {
       setValidationError('Please fill in all required fields.');
+      return;
+    }
+
+    if (!rollNumber.trim()) {
+      setValidationError('University Roll Number is mandatory to register.');
       return;
     }
 
@@ -53,8 +59,9 @@ const Register = () => {
     setLoading(true);
     try {
       const payload = {
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
+        rollNumber: rollNumber.trim().toUpperCase(),
         password,
         role,
         department,
@@ -94,10 +101,12 @@ const Register = () => {
 
           <form onSubmit={handleRegisterSubmit} className="space-y-4 text-left">
             
-            {/* Name & Email Row */}
+            {/* Name & Roll Number Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  Full Name <span className="text-rose-400">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -108,16 +117,33 @@ const Register = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                  University Roll Number <span className="text-rose-400">*</span>
+                </label>
                 <input
-                  type="email"
+                  type="text"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="rahul@example.com"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 focus:outline-none focus:border-brand-500 text-sm text-slate-200"
+                  value={rollNumber}
+                  onChange={(e) => setRollNumber(e.target.value)}
+                  placeholder="e.g. 21BCSE101"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 focus:outline-none focus:border-brand-500 text-sm text-slate-200 uppercase tracking-wider"
                 />
               </div>
+            </div>
+
+            {/* Email Address */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                Email Address <span className="text-rose-400">*</span>
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="rahul@example.com"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 focus:outline-none focus:border-brand-500 text-sm text-slate-200"
+              />
             </div>
 
             {/* Passwords Row */}

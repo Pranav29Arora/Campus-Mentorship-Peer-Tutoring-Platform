@@ -8,6 +8,7 @@ const UserTable = ({ users, onToggleStatus }) => {
   const filteredUsers = users.filter(u => 
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (u.rollNumber && u.rollNumber.toLowerCase().includes(searchQuery.toLowerCase())) ||
     u.role.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -20,7 +21,7 @@ const UserTable = ({ users, onToggleStatus }) => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search users by name, email..."
+            placeholder="Search by name, email, roll no..."
             className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-800 bg-slate-900/60 focus:outline-none focus:border-brand-500 text-xs text-slate-300 placeholder-slate-500"
           />
           <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-500" />
@@ -35,6 +36,7 @@ const UserTable = ({ users, onToggleStatus }) => {
             <thead>
               <tr className="bg-slate-900/80 border-b border-slate-850 text-slate-400 text-xs font-semibold uppercase tracking-wider">
                 <th className="px-6 py-4">Name</th>
+                <th className="px-6 py-4">Roll No</th>
                 <th className="px-6 py-4">Email</th>
                 <th className="px-6 py-4">Role</th>
                 <th className="px-6 py-4">Status</th>
@@ -54,6 +56,9 @@ const UserTable = ({ users, onToggleStatus }) => {
                         className="w-8 h-8 rounded-full border border-slate-700 object-cover"
                       />
                       <span className="font-semibold text-white">{item.name}</span>
+                    </td>
+                    <td className="px-6 py-4 text-xs font-mono font-medium text-brand-400">
+                      {item.rollNumber || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-xs font-medium text-slate-400">{item.email}</td>
                     <td className="px-6 py-4">

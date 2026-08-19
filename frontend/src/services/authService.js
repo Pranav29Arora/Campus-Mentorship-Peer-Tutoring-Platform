@@ -59,6 +59,10 @@ export const authService = {
   },
 
   register: async (userData) => {
+    if (!userData.rollNumber || !userData.rollNumber.trim()) {
+      throw new Error('University Roll Number is mandatory to register.');
+    }
+
     if (USE_MOCK) {
       await new Promise(resolve => setTimeout(resolve, 500));
       const users = storage.getUsers();
@@ -68,11 +72,17 @@ export const authService = {
         throw new Error('An account with this email address already exists.');
       }
 
+      const rollExists = users.some(u => u.rollNumber && u.rollNumber.toLowerCase() === userData.rollNumber.trim().toLowerCase());
+      if (rollExists) {
+        throw new Error('An account with this University Roll Number already exists.');
+      }
+
       const newUserId = `user_${Date.now()}`;
       const newUser = {
         id: newUserId,
         name: userData.name,
         email: userData.email,
+        rollNumber: userData.rollNumber.trim().toUpperCase(),
         role: userData.role,
         department: userData.department,
         year: parseInt(userData.year) || 1,
@@ -95,6 +105,7 @@ export const authService = {
           userId: newUserId,
           name: newUser.name,
           email: newUser.email,
+          rollNumber: newUser.rollNumber,
           department: newUser.department,
           year: newUser.year,
           avatar: newUser.avatar,

@@ -39,6 +39,7 @@ const login = async ({ email, password }) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      rollNumber: user.rollNumber,
       role: user.role,
       department: user.department,
       year: user.year,
@@ -49,9 +50,18 @@ const login = async ({ email, password }) => {
 };
 
 const register = async (userData) => {
+  if (!userData.rollNumber || !userData.rollNumber.trim()) {
+    throw new Error('University Roll Number is mandatory to register.');
+  }
+
   const existing = db.users.find(u => u.email.toLowerCase() === userData.email.toLowerCase());
   if (existing) {
     throw new Error('An account with this email address already exists.');
+  }
+
+  const existingRoll = db.users.find(u => u.rollNumber && u.rollNumber.toLowerCase() === userData.rollNumber.trim().toLowerCase());
+  if (existingRoll) {
+    throw new Error('An account with this University Roll Number already exists.');
   }
 
   const passwordHash = await pwdUtil.hashPassword(userData.password);
@@ -61,6 +71,7 @@ const register = async (userData) => {
     id: newUserId,
     name: userData.name,
     email: userData.email,
+    rollNumber: userData.rollNumber.trim().toUpperCase(),
     passwordHash,
     role: userData.role,
     department: userData.department,
@@ -81,6 +92,7 @@ const register = async (userData) => {
       userId: newUserId,
       name: newUser.name,
       email: newUser.email,
+      rollNumber: newUser.rollNumber,
       department: newUser.department,
       year: newUser.year,
       avatar: newUser.avatar,
@@ -101,6 +113,7 @@ const register = async (userData) => {
       id: newUser.id,
       name: newUser.name,
       email: newUser.email,
+      rollNumber: newUser.rollNumber,
       role: newUser.role,
       department: newUser.department,
       year: newUser.year,

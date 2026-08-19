@@ -2,10 +2,11 @@
 // This maps directly to Firebase Auth / Firestore or MongoDB User Collection.
 
 class User {
-  constructor({ id, name, email, passwordHash, role, department, year, avatar, status = 'active', createdAt }) {
+  constructor({ id, name, email, rollNumber, passwordHash, role, department, year, avatar, status = 'active', createdAt }) {
     this.id = id;                     // String (Firebase UID or MongoDB ObjectId)
     this.name = name;                 // String
     this.email = email;               // String
+    this.rollNumber = rollNumber;     // String (University Roll Number)
     this.passwordHash = passwordHash; // String (bcrypt hashed password)
     this.role = role;                 // String ('student' | 'mentor' | 'admin')
     this.department = department;     // String (e.g. 'Computer Science')

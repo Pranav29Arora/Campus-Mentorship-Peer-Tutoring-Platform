@@ -35,7 +35,21 @@ const login = async (req, res, next) => {
 
 const register = async (req, res, next) => {
   try {
-    const { name, email, password, role, department, year } = req.body;
+    const { name, email, password, role, department, year, rollNumber } = req.body;
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required registration fields.'
+      });
+    }
+
+    if (!rollNumber || !rollNumber.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'University Roll Number is mandatory to register.'
+      });
+    }
 
     if (!validators.isValidEmail(email)) {
       return res.status(400).json({
