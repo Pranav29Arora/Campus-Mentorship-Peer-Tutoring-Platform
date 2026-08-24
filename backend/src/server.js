@@ -1,9 +1,17 @@
 const http = require('http');
 const { Server } = require('socket.io');
+const { ExpressPeerServer } = require('peer');
 const app = require('./app');
 const env = require('./config/env');
 
 const server = http.createServer(app);
+
+// Initialize PeerJS server
+const peerServer = ExpressPeerServer(server, {
+  debug: true,
+  path: '/'
+});
+app.use('/peerjs', peerServer);
 
 // Initialize Socket.io signaling server
 const io = new Server(server, {
@@ -19,12 +27,12 @@ io.on('connection', (socket) => {
   console.log(`[Signaling] Peer connected: ${socket.id}`);
 
   // Room coordination
-  socket.on('join-room', ({ bookingId, userId, userName }) => {
+  socket.on('join-room', ({ bookingId, userId, userName, peerId }) => {
     socket.join(bookingId);
-    console.log(`[Signaling] User ${userId} (${userName}) joined room: ${bookingId}`);
+    console.log(`[Signaling] User ${userId} (${userName}) joined room: ${bookingId} (peerId: ${peerId})`);
     
     // Notify other participants in the room
-    socket.to(bookingId).emit('user-connected', { userId, userName, socketId: socket.id });
+    socket.to(bookingId).emit('user-connected', { userId, userName, socketId: socket.id, peerId });
   });
 
   // Relay WebRTC SDP offer, answer, or ICE candidate

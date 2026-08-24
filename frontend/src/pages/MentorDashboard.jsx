@@ -10,38 +10,68 @@ import ReviewCard from '../components/reviews/ReviewCard';
 import Button from '../components/common/Button';
 import { Calendar, Clock, Users, Star, Award, PlusCircle, UserCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { mentorService } from '../services/mentorService';
 
 const MentorDashboard = () => {
   const { user } = useContext(AuthContext);
-  const { bookings } = useContext(AppContext);
+  const { bookings, availability, fetchAvailability } = useContext(AppContext);
   const [mentorProfile, setMentorProfile] = useState(null);
   const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
     if (user && user.mentorId) {
-      // Load mentor's profile stats
-      const mentors = JSON.parse(localStorage.getItem('cc_mentors') || '[]');
-      const profile = mentors.find(m => m.id === user.mentorId);
-      if (profile) setMentorProfile(profile);
+      // Load mentor's profile stats & reviews from service
+      mentorService.getMentorById(user.mentorId)
+        .then(profile => {
+          setMentorProfile(profile);
+          if (profile.reviews) {
+            setReviews(profile.reviews);
+          }
+        })
+        .catch(err => console.error('Failed to load mentor stats:', err));
 
-      // Load mentor's reviews
-      const allReviews = JSON.parse(localStorage.getItem('cc_reviews') || '[]');
-      const filteredReviews = allReviews.filter(r => r.mentorId === user.mentorId);
-      setReviews(filteredReviews);
+      // Fetch availability slots
+      fetchAvailability(user.mentorId);
     }
   }, [user, bookings]);
 
   // Compute Mentor statistics
   const mentorBookings = bookings.filter(b => b.mentorId === user?.mentorId);
-  const upcomingBookings = mentorBookings.filter(b => b.status === 'upcoming');
   const completedBookings = mentorBookings.filter(b => b.status === 'completed');
   
+  // Convert unbooked availability slots into pseudo-bookings
+  const unbookedPseudoBookings = (availability || [])
+    .filter(slot => slot.status === 'available')
+    .map(slot => ({
+      id: slot.id,
+      mentorId: slot.mentorId,
+      studentId: '',
+      studentName: 'Open Slot (No Student Yet)',
+      subject: slot.subject,
+      date: slot.date,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      status: 'upcoming'
+    }));
+
+  // Combine real booked sessions and unbooked slots
+  const allScheduled = [...mentorBookings.filter(b => b.status === 'upcoming'), ...unbookedPseudoBookings];
+  
+  // Sort by date and startTime
+  allScheduled.sort((a, b) => {
+    const dateDiff = new Date(a.date) - new Date(b.date);
+    if (dateDiff !== 0) return dateDiff;
+    return a.startTime.localeCompare(b.startTime);
+  });
+
+  const upcomingBookings = allScheduled;
+
   // Unique students connected
-  const totalStudents = new Set(mentorBookings.map(b => b.studentId)).size;
+  const totalStudents = new Set(mentorBookings.map(b => b.studentId).filter(Boolean)).size;
 
   // Filter today's sessions
   const todayStr = new Date().toISOString().split('T')[0];
-  const todaySessions = mentorBookings.filter(b => b.date === todayStr && b.status === 'upcoming');
+  const todaySessions = allScheduled.filter(b => b.date === todayStr);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">

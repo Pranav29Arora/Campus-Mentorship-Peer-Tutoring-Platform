@@ -56,12 +56,16 @@ const VideoCall = () => {
   const currentCallRef = useRef(null);
   const chatBottomRef = useRef(null);
   const containerRef = useRef(null);
+  const localStreamRef = useRef(null);
+  const screenStreamRef = useRef(null);
+  const isUnmountedRef = useRef(false);
 
   // Current Session info
   const booking = bookings.find(b => b.id === bookingId);
   const isMentor = user?.role === 'mentor';
 
   useEffect(() => {
+    isUnmountedRef.current = false;
     if (booking) {
       setPeerName(isMentor ? booking.studentName || 'Junior Student' : booking.mentorName);
     }
@@ -70,6 +74,7 @@ const VideoCall = () => {
     initializeLocalStream();
 
     return () => {
+      isUnmountedRef.current = true;
       // Clean up streams & sockets on unmount
       stopAllTracks();
     };
@@ -103,12 +108,49 @@ const VideoCall = () => {
 
   // Stream cleanup helper
   const stopAllTracks = () => {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
+    // Close active PeerJS call connection if any
+    if (currentCallRef.current) {
+      try {
+        currentCallRef.current.close();
+      } catch (e) {
+        console.error('[WebRTC] Error closing call:', e);
+      }
+      currentCallRef.current = null;
     }
-    if (screenStream) {
-      screenStream.getTracks().forEach(track => track.stop());
+
+    const currentLocalStream = localStreamRef.current || localStream;
+    if (currentLocalStream) {
+      currentLocalStream.getTracks().forEach(track => {
+        console.log('[WebRTC] Stopping local stream track:', track.kind);
+        track.stop();
+      });
+      localStreamRef.current = null;
     }
+    const currentScreenStream = screenStreamRef.current || screenStream;
+    if (currentScreenStream) {
+      currentScreenStream.getTracks().forEach(track => {
+        console.log('[WebRTC] Stopping screen stream track:', track.kind);
+        track.stop();
+      });
+      screenStreamRef.current = null;
+    }
+
+    // Unbind stream objects from HTML5 video tags
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+    if (screenVideoRef.current) {
+      screenVideoRef.current.srcObject = null;
+    }
+
+    // Clear React states
+    setLocalStream(null);
+    setRemoteStream(null);
+    setScreenStream(null);
+
     if (socketRef.current) {
       socketRef.current.disconnect();
     }
@@ -121,16 +163,24 @@ const VideoCall = () => {
   const initializeLocalStream = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      if (isUnmountedRef.current) {
+        console.log('[WebRTC] Component unmounted before getUserMedia resolved. Stopping tracks.');
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
       setLocalStream(stream);
+      localStreamRef.current = stream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
       }
       initializeWebRTC(stream);
     } catch (err) {
       console.warn('[WebRTC] Native camera access unavailable or denied. Initializing simulated media stream.', err);
+      if (isUnmountedRef.current) return;
       // Fallback: Create dynamic canvas stream for demo/testing mode
       const mockCanvasStream = createSimulatedCanvasStream(user?.name || 'You');
       setLocalStream(mockCanvasStream);
+      localStreamRef.current = mockCanvasStream;
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = mockCanvasStream;
       }
@@ -351,6 +401,7 @@ const VideoCall = () => {
 
       const screenTrack = displayStream.getVideoTracks()[0];
       setScreenStream(displayStream);
+      screenStreamRef.current = displayStream;
       setScreenShareActive(true);
       setViewMode('stage');
 
@@ -394,9 +445,11 @@ const VideoCall = () => {
   };
 
   const stopScreenSharing = () => {
-    if (screenStream) {
-      screenStream.getTracks().forEach(track => track.stop());
+    const currentScreenStream = screenStreamRef.current || screenStream;
+    if (currentScreenStream) {
+      currentScreenStream.getTracks().forEach(track => track.stop());
       setScreenStream(null);
+      screenStreamRef.current = null;
     }
     setScreenShareActive(false);
 

@@ -1,9 +1,9 @@
 export const mockMentors = [
   {
     id: 'mentor001',
-    userId: 'user001', // Linked to user001 (Rahul Sharma)
+    userId: 'mentor_demo', // Linked to mentor_demo (Rahul Sharma)
     name: 'Rahul Sharma',
-    email: 'rahul@example.com',
+    email: 'mentor@campusconnect.com',
     department: 'Computer Science',
     year: 4,
     avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150',

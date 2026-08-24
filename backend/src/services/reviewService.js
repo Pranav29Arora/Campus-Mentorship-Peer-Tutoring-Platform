@@ -43,6 +43,7 @@ const createReview = async (studentId, reviewData) => {
   };
 
   db.reviews.push(newReview);
+  booking.isReviewed = true;
 
   // Recalculate mentor's average rating
   const mentorReviews = db.reviews.filter(r => r.mentorId === booking.mentorId);

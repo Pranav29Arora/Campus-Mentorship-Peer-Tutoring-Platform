@@ -10,6 +10,7 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const availabilityRoutes = require('./routes/availabilityRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Global fallback error handler
 app.use(errorMiddleware);

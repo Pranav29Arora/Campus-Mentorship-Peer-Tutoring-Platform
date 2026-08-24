@@ -44,8 +44,12 @@ const StudentDashboard = () => {
 
   // Find bookings that are completed but don't have reviews yet
   const getUnreviewedBookings = () => {
-    const reviews = JSON.parse(localStorage.getItem('cc_reviews') || '[]');
-    return completedBookings.filter(b => !reviews.some(r => r.bookingId === b.id));
+    if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+      const reviews = JSON.parse(localStorage.getItem('cc_reviews') || '[]');
+      return completedBookings.filter(b => !reviews.some(r => r.bookingId === b.id));
+    } else {
+      return completedBookings.filter(b => !b.isReviewed);
+    }
   };
 
   const unreviewedList = getUnreviewedBookings();

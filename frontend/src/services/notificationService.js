@@ -1,3 +1,4 @@
+import apiClient from './apiClient';
 import { storage } from '../utils/storage';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK_DATA === 'true';
@@ -8,8 +9,8 @@ export const notificationService = {
       const allNotifs = storage.getNotifications();
       return allNotifs.filter(n => n.userId === userId);
     } else {
-      // Endpoint fallback
-      return [];
+      const response = await apiClient.get('/notifications');
+      return response.data.data;
     }
   },
 
@@ -23,7 +24,8 @@ export const notificationService = {
       }
       return true;
     } else {
-      return true;
+      const response = await apiClient.put(`/notifications/${notifId}/read`);
+      return response.data.data;
     }
   }
 };

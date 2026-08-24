@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
+import { storage } from '../utils/storage';
 
 export const AuthContext = createContext(null);
 
@@ -63,7 +64,7 @@ export const AuthProvider = ({ children }) => {
     setUser(prev => {
       const updated = { ...prev, ...updatedData };
       // Sync back to storage
-      localStorage.setItem('cc_current_user', JSON.stringify(updated));
+      storage.setCurrentUser(updated);
       return updated;
     });
   };

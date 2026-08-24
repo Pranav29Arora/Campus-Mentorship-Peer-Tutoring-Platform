@@ -60,14 +60,14 @@ export const storage = {
   getNotifications: () => JSON.parse(localStorage.getItem(KEYS.NOTIFICATIONS) || '[]'),
   setNotifications: (data) => localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(data)),
 
-  getCurrentUser: () => JSON.parse(localStorage.getItem(KEYS.CURRENT_USER) || 'null'),
-  setCurrentUser: (data) => localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(data)),
+  getCurrentUser: () => JSON.parse(sessionStorage.getItem(KEYS.CURRENT_USER) || 'null'),
+  setCurrentUser: (data) => sessionStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(data)),
 
-  getToken: () => localStorage.getItem(KEYS.TOKEN) || 'null',
-  setToken: (token) => localStorage.setItem(KEYS.TOKEN, token),
+  getToken: () => sessionStorage.getItem(KEYS.TOKEN) || 'null',
+  setToken: (token) => sessionStorage.setItem(KEYS.TOKEN, token),
   
   clearAuth: () => {
-    localStorage.removeItem(KEYS.CURRENT_USER);
-    localStorage.removeItem(KEYS.TOKEN);
+    sessionStorage.removeItem(KEYS.CURRENT_USER);
+    sessionStorage.removeItem(KEYS.TOKEN);
   }
 };

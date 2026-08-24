@@ -85,9 +85,9 @@ const initialUsers = [
 const initialMentors = [
   {
     id: 'mentor001',
-    userId: 'user001', // Rahul Sharma
+    userId: 'mentor_demo', // Rahul Sharma
     name: 'Rahul Sharma',
-    email: 'rahul@example.com',
+    email: 'mentor@campusconnect.com',
     rollNumber: '20BCSE014',
     department: 'Computer Science',
     year: 4,
@@ -173,6 +173,7 @@ const initialBookings = [
   {
     id: 'booking001',
     studentId: 'student_demo',
+    studentName: 'Arjun Mehta',
     mentorId: 'mentor001',
     mentorName: 'Rahul Sharma',
     subject: 'JavaScript',
@@ -186,6 +187,7 @@ const initialBookings = [
   {
     id: 'booking002',
     studentId: 'student_demo',
+    studentName: 'Arjun Mehta',
     mentorId: 'mentor002',
     mentorName: 'Priya Singh',
     subject: 'Python',
@@ -217,11 +219,13 @@ let mentors = [...initialMentors];
 let availability = [...initialAvailability];
 let bookings = [...initialBookings];
 let reviews = [...initialReviews];
+let notifications = [];
 
 module.exports = {
   users,
   mentors,
   availability,
   bookings,
-  reviews
+  reviews,
+  notifications
 };
