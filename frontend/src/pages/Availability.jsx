@@ -7,7 +7,7 @@ import Button from '../components/common/Button';
 import { AuthContext } from '../context/AuthContext';
 import { AppContext } from '../context/AppContext';
 import { SUBJECTS } from '../components/mentors/MentorFilters';
-import { Calendar, Clock, Trash2, CheckCircle2, Lock, PlusCircle } from 'lucide-react';
+import { Calendar, Clock, Trash2, CheckCircle2, Lock, PlusCircle, Sparkles } from 'lucide-react';
 
 const Availability = () => {
   const { user } = useContext(AuthContext);
@@ -65,19 +65,22 @@ const Availability = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-bg">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
 
       <div className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 text-left">
         
         {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-extrabold text-white font-sans flex items-center gap-2">
-            <Calendar className="w-8 h-8 text-brand-500" />
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+            Scheduling Center
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans flex items-center gap-3">
             Manage Availability Slots
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Publish tutoring calendar slots. Students can browse and book slots instantly.
+          <p className="text-sm text-slate-500 mt-1">
+            Publish tutoring calendar slots. Students can browse and book available slots instantly.
           </p>
         </div>
 
@@ -85,9 +88,9 @@ const Availability = () => {
           
           {/* Form to Add Slots */}
           <div className="lg:col-span-1">
-            <div className="glass-panel p-6 rounded-2xl border border-slate-800 shadow-sm space-y-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <PlusCircle className="w-4.5 h-4.5 text-brand-500" />
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <PlusCircle className="w-4.5 h-4.5 text-brand-600" />
                 Add New Slot
               </h3>
 
@@ -95,33 +98,33 @@ const Availability = () => {
 
               <form onSubmit={handleAddSlot} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Date</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Date</label>
                   <input
                     type="date"
                     required
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 focus:outline-none focus:border-brand-500 text-sm text-slate-200"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-sm text-slate-800"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Start Time</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Start Time</label>
                     <select
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 focus:outline-none focus:border-brand-500 text-sm text-slate-300"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-brand-500 text-xs font-bold text-slate-800 cursor-pointer"
                     >
                       {times.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">End Time</label>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">End Time</label>
                     <select
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 focus:outline-none focus:border-brand-500 text-sm text-slate-300"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-brand-500 text-xs font-bold text-slate-800 cursor-pointer"
                     >
                       {times.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
@@ -129,11 +132,11 @@ const Availability = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Subject Topic</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Subject Topic</label>
                   <select
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 focus:outline-none focus:border-brand-500 text-sm text-slate-300"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-brand-500 text-sm font-semibold text-slate-800 cursor-pointer"
                   >
                     {SUBJECTS.map(sub => <option key={sub} value={sub}>{sub}</option>)}
                   </select>
@@ -143,7 +146,7 @@ const Availability = () => {
                   type="submit"
                   variant="primary"
                   loading={formLoading}
-                  className="w-full mt-2"
+                  className="w-full mt-2 font-bold shadow-md shadow-brand-500/25"
                 >
                   Publish Slot
                 </Button>
@@ -153,13 +156,13 @@ const Availability = () => {
           </div>
 
           {/* List of Current Slots */}
-          <div className="lg:col-span-2 space-y-6">
-            <h3 className="text-base font-bold text-white font-sans">Active Calendar Slots</h3>
+          <div className="lg:col-span-2 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 font-sans">Active Calendar Slots</h3>
             
             {loading ? (
               <Loader message="Fetching calendar slots..." />
             ) : availability.length === 0 ? (
-              <div className="glass-panel p-8 text-center rounded-2xl border border-slate-800 text-slate-400 text-sm">
+              <div className="bg-white p-8 text-center rounded-3xl border border-slate-200 text-slate-500 text-sm shadow-sm font-medium">
                 No availability slots published yet.
               </div>
             ) : (
@@ -169,29 +172,29 @@ const Availability = () => {
                   return (
                     <div 
                       key={slot.id} 
-                      className={`glass-panel p-4 rounded-xl border flex items-center justify-between gap-4 transition-all duration-300 ${
+                      className={`p-4 rounded-2xl border flex items-center justify-between gap-4 transition-all duration-200 ${
                         isBooked 
-                          ? 'border-emerald-500/20 bg-emerald-500/5' 
-                          : 'border-slate-800'
+                          ? 'border-emerald-200 bg-emerald-50/60 shadow-xs' 
+                          : 'border-slate-200 bg-white shadow-xs hover:border-brand-300'
                       }`}
                     >
                       <div className="flex items-start gap-2.5 text-left">
-                        <Clock className={`w-4 h-4 mt-0.5 ${isBooked ? 'text-emerald-400' : 'text-slate-400'}`} />
+                        <Clock className={`w-4 h-4 mt-0.5 ${isBooked ? 'text-emerald-600' : 'text-brand-600'}`} />
                         <div>
-                          <p className="text-xs font-semibold text-white">{slot.startTime} - {slot.endTime}</p>
-                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">{slot.date} • {slot.subject}</p>
+                          <p className="text-xs font-bold text-slate-900">{slot.startTime} - {slot.endTime}</p>
+                          <p className="text-[11px] text-slate-500 font-semibold mt-0.5">{slot.date} • {slot.subject}</p>
                         </div>
                       </div>
 
                       {isBooked ? (
-                        <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
-                          <Lock className="w-3.5 h-3.5" />
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1 uppercase">
+                          <Lock className="w-3 h-3" />
                           Booked
                         </span>
                       ) : (
                         <button
                           onClick={() => handleDeleteSlot(slot.id)}
-                          className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/5 transition-all"
+                          className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
                           title="Delete slot"
                         >
                           <Trash2 className="w-4 h-4" />

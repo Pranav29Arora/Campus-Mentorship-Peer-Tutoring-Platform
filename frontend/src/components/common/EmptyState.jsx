@@ -8,12 +8,12 @@ const EmptyState = ({
   actionButton
 }) => {
   return (
-    <div className="glass-panel p-8 rounded-2xl border border-slate-800/80 text-center shadow-lg max-w-md mx-auto my-8">
-      <div className="w-14 h-14 bg-slate-800/50 border border-slate-700/60 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+    <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center shadow-sm max-w-md mx-auto my-8">
+      <div className="w-14 h-14 bg-brand-50 border border-brand-100 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-600">
         <Icon className="w-6 h-6" />
       </div>
-      <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-      <p className="text-sm text-slate-400 mb-6 leading-relaxed">{message}</p>
+      <h3 className="text-lg font-bold text-slate-800 mb-2">{title}</h3>
+      <p className="text-sm text-slate-500 mb-6 leading-relaxed">{message}</p>
       {actionButton}
     </div>
   );

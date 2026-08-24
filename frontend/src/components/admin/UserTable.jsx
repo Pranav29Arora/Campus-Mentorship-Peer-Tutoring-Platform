@@ -22,19 +22,19 @@ const UserTable = ({ users, onToggleStatus }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name, email, roll no..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-800 bg-slate-900/60 focus:outline-none focus:border-brand-500 text-xs text-slate-300 placeholder-slate-500"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 text-xs text-slate-800 placeholder-slate-400 shadow-xs"
           />
-          <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-500" />
+          <Search className="absolute left-3.5 top-3 w-3.5 h-3.5 text-slate-400" />
         </div>
-        <p className="text-xs text-slate-400 font-medium">Total: {filteredUsers.length} users</p>
+        <p className="text-xs text-slate-500 font-semibold">Total: {filteredUsers.length} users</p>
       </div>
 
       {/* Users table */}
-      <div className="glass-panel border-slate-800 rounded-2xl overflow-hidden shadow-md">
+      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-900/80 border-b border-slate-850 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs font-bold uppercase tracking-wider">
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Roll No</th>
                 <th className="px-6 py-4">Email</th>
@@ -44,55 +44,55 @@ const UserTable = ({ users, onToggleStatus }) => {
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-850/50 text-slate-300 text-sm">
+            <tbody className="divide-y divide-slate-100 text-slate-700 text-sm">
               {filteredUsers.map((item) => {
                 const isActive = item.status === 'active';
                 return (
-                  <tr key={item.id} className="hover:bg-slate-900/20 transition-colors">
+                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="px-6 py-4 flex items-center gap-3">
                       <img
                         src={item.avatar}
                         alt={item.name}
-                        className="w-8 h-8 rounded-full border border-slate-700 object-cover"
+                        className="w-8 h-8 rounded-full border border-brand-200 object-cover"
                       />
-                      <span className="font-semibold text-white">{item.name}</span>
+                      <span className="font-bold text-slate-900">{item.name}</span>
                     </td>
-                    <td className="px-6 py-4 text-xs font-mono font-medium text-brand-400">
+                    <td className="px-6 py-4 text-xs font-mono font-bold text-brand-600">
                       {item.rollNumber || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 text-xs font-medium text-slate-400">{item.email}</td>
+                    <td className="px-6 py-4 text-xs font-medium text-slate-600">{item.email}</td>
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${
+                      <span className={`text-[10px] px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${
                         item.role === 'admin' 
-                          ? 'bg-rose-500/10 text-rose-400 border border-rose-500/25'
+                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
                           : item.role === 'mentor'
-                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/25'
-                          : 'bg-brand-500/10 text-brand-400 border border-brand-500/25'
+                          ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                          : 'bg-brand-50 text-brand-700 border border-brand-200'
                       }`}>
                         {item.role}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-semibold ${
+                      <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase ${
                         isActive 
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25' 
-                          : 'bg-red-500/10 text-red-400 border border-red-500/25'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
                       }`}>
                         {item.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-xs text-slate-400">
+                    <td className="px-6 py-4 text-xs text-slate-500 font-medium">
                       {new Date(item.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
                       {item.role === 'admin' ? (
-                        <span className="text-[10px] text-slate-500 italic font-semibold">Protected</span>
+                        <span className="text-[10px] text-slate-400 italic font-semibold">Protected</span>
                       ) : (
                         <Button
-                          variant={isActive ? 'outline' : 'glass'}
+                          variant={isActive ? 'outline' : 'primary'}
                           size="sm"
                           onClick={() => onToggleStatus(item.id, isActive ? 'disabled' : 'active')}
-                          className="text-xs"
+                          className="text-xs font-bold"
                           icon={isActive ? UserX : UserCheck}
                         >
                           {isActive ? 'Disable' : 'Enable'}

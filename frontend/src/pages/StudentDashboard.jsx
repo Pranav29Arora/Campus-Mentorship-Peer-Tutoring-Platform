@@ -13,7 +13,8 @@ import ReviewForm from '../components/reviews/ReviewForm';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { mentorService } from '../services/mentorService';
-import { Calendar, CheckCircle2, Users, Star, Award, Compass, MessageSquarePlus } from 'lucide-react';
+import { Calendar, CheckCircle2, Users, Star, Award, Compass, MessageSquarePlus, Sparkles } from 'lucide-react';
+import Button from '../components/common/Button';
 
 const StudentDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -72,16 +73,20 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-bg">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
 
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 text-left">
         
         {/* Welcome Area */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-extrabold text-white font-sans">Student Dashboard</h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Welcome back, <strong className="text-white font-semibold">{user?.name}</strong>. Track your tutoring appointments and query ratings here.
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+            Student Workspace
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans">Student Dashboard</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Welcome back, <strong className="text-slate-800 font-bold">{user?.name}</strong>. Track your tutoring appointments and schedule sessions with seniors.
           </p>
         </div>
 
@@ -123,13 +128,13 @@ const StudentDashboard = () => {
             
             {/* Upcoming Session list */}
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white font-sans flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-brand-500" />
+              <h3 className="text-lg font-bold text-slate-900 font-sans flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-brand-600" />
                 Upcoming Bookings
               </h3>
               {upcomingBookings.length === 0 ? (
-                <div className="glass-panel p-8 text-center rounded-2xl border border-slate-800 text-slate-400">
-                  <p className="text-sm">You have no upcoming tutoring sessions scheduled.</p>
+                <div className="bg-white p-8 text-center rounded-3xl border border-slate-200 shadow-sm text-slate-500">
+                  <p className="text-sm font-medium">You have no upcoming tutoring sessions scheduled.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -142,22 +147,22 @@ const StudentDashboard = () => {
 
             {/* Unreviewed list banner alerts */}
             {unreviewedList.length > 0 && (
-              <div className="glass-panel p-6 rounded-2xl border border-rose-500/20 bg-rose-500/5 space-y-4">
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  <MessageSquarePlus className="w-4 h-4 text-rose-400" />
+              <div className="bg-rose-50/70 p-6 rounded-3xl border border-rose-200 space-y-4 shadow-sm">
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <MessageSquarePlus className="w-4 h-4 text-rose-600" />
                   Rate Completed Sessions
                 </h4>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-600">
                   Help improve the platform. Rate your recently completed tutoring sessions:
                 </p>
                 <div className="space-y-2">
                   {unreviewedList.map(b => (
-                    <div key={b.id} className="flex justify-between items-center bg-slate-950/40 p-3 rounded-xl border border-slate-900/60 text-xs">
+                    <div key={b.id} className="flex justify-between items-center bg-white p-3.5 rounded-2xl border border-rose-200 text-xs shadow-xs">
                       <div>
-                        <span className="font-semibold text-white">{b.mentorName}</span>
-                        <span className="text-slate-400"> • {b.subject} on {b.date}</span>
+                        <span className="font-bold text-slate-900">{b.mentorName}</span>
+                        <span className="text-slate-500"> • {b.subject} on {b.date}</span>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => handleOpenReview(b)} className="text-[10px] py-1 px-3">
+                      <Button variant="outline" size="sm" onClick={() => handleOpenReview(b)} className="text-[11px] py-1 px-3 font-bold border-rose-200 text-rose-700 hover:bg-rose-50">
                         Review
                       </Button>
                     </div>
@@ -168,8 +173,8 @@ const StudentDashboard = () => {
 
             {/* Recommended Mentors */}
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white font-sans flex items-center gap-2">
-                <Compass className="w-5 h-5 text-brand-500" />
+              <h3 className="text-lg font-bold text-slate-900 font-sans flex items-center gap-2">
+                <Compass className="w-5 h-5 text-brand-600" />
                 Recommended Mentors
               </h3>
               {loading ? (
@@ -215,7 +220,7 @@ const StudentDashboard = () => {
           title={`Submit Feedback for ${reviewBooking.mentorName}`}
         >
           {reviewSuccess ? (
-            <div className="text-center py-6 text-emerald-400 font-bold text-sm animate-pulse">
+            <div className="text-center py-6 text-emerald-600 font-bold text-sm animate-pulse">
               Review submitted successfully! Thank you.
             </div>
           ) : (

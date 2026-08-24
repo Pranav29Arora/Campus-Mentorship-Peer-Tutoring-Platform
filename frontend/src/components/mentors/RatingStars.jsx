@@ -35,7 +35,7 @@ const RatingStars = ({ rating = 5, size = 16, className = '' }) => {
       <Star 
         key={`empty-${i}`} 
         size={size} 
-        className="text-slate-600" 
+        className="text-slate-300" 
       />
     );
   }

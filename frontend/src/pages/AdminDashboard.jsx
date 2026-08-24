@@ -9,7 +9,7 @@ import Statistics from '../components/admin/Statistics';
 import Loader from '../components/common/Loader';
 import { AuthContext } from '../context/AuthContext';
 import { AppContext } from '../context/AppContext';
-import { Shield, Users, Calendar, Award, Star, ToggleLeft } from 'lucide-react';
+import { Shield, Users, Calendar, Award, Star, ToggleLeft, Sparkles } from 'lucide-react';
 
 const AdminDashboard = ({ activeTab = 'stats' }) => {
   const { user } = useContext(AuthContext);
@@ -102,7 +102,6 @@ const AdminDashboard = ({ activeTab = 'stats' }) => {
     if (idx !== -1) {
       allUsers[idx].status = newStatus;
       localStorage.setItem('cc_users', JSON.stringify(allUsers));
-      // Re-trigger layout load
       loadAdminData();
     }
   };
@@ -110,19 +109,22 @@ const AdminDashboard = ({ activeTab = 'stats' }) => {
   const { summary } = stats;
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-bg">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
 
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 text-left">
         
         {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-extrabold text-white font-sans flex items-center gap-2">
-            <Shield className="w-8 h-8 text-rose-500" />
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold mb-2">
+            <Shield className="w-3.5 h-3.5 text-rose-600" />
+            Superadmin Access
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans flex items-center gap-2.5">
             Administration Center
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            System logs, user suspensions, and aggregate peer mentoring charts.
+          <p className="text-sm text-slate-500 mt-1">
+            System logs, user management, and aggregate peer mentoring performance charts.
           </p>
         </div>
 
@@ -188,7 +190,7 @@ const AdminDashboard = ({ activeTab = 'stats' }) => {
                 {/* 2. Users Tab */}
                 {activeTab === 'users' && (
                   <div className="space-y-4 animate-in fade-in duration-300">
-                    <h3 className="text-lg font-bold text-white font-sans">Manage User Access</h3>
+                    <h3 className="text-lg font-bold text-slate-900 font-sans">Manage User Access</h3>
                     <UserTable users={users} onToggleStatus={handleToggleUserStatus} />
                   </div>
                 )}
@@ -196,7 +198,7 @@ const AdminDashboard = ({ activeTab = 'stats' }) => {
                 {/* 3. Bookings Tab */}
                 {activeTab === 'bookings' && (
                   <div className="space-y-4 animate-in fade-in duration-300">
-                    <h3 className="text-lg font-bold text-white font-sans">Track Scheduled Bookings</h3>
+                    <h3 className="text-lg font-bold text-slate-900 font-sans">Track Scheduled Bookings</h3>
                     <BookingTable bookings={bookings} />
                   </div>
                 )}
@@ -213,7 +215,7 @@ const AdminDashboard = ({ activeTab = 'stats' }) => {
   );
 };
 
-// SVG visual helper imported
+// SVG visual helper
 const CheckCircle2 = (props) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 

@@ -3,7 +3,6 @@ import { Calendar, Award, CheckCircle, PlusCircle } from 'lucide-react';
 
 const RecentActivity = ({ bookings, role }) => {
   const getActivities = () => {
-    // Generate a set of activities dynamically based on completed and upcoming bookings
     const activities = [];
 
     bookings.forEach(b => {
@@ -15,7 +14,7 @@ const RecentActivity = ({ bookings, role }) => {
             : `Your session with Student ${b.studentName || 'Peer'} was completed.`,
           time: 'Recently',
           icon: CheckCircle,
-          color: 'text-emerald-500 bg-emerald-500/10'
+          color: 'text-emerald-600 bg-emerald-50 border-emerald-200'
         });
       } else if (b.status === 'upcoming') {
         activities.push({
@@ -25,12 +24,11 @@ const RecentActivity = ({ bookings, role }) => {
             : `New booking received from student for ${b.date}.`,
           time: 'New',
           icon: Calendar,
-          color: 'text-brand-400 bg-brand-500/10'
+          color: 'text-brand-600 bg-brand-50 border-brand-200'
         });
       }
     });
 
-    // Fallback if no records exist
     if (activities.length === 0) {
       return [
         {
@@ -38,7 +36,7 @@ const RecentActivity = ({ bookings, role }) => {
           message: 'Welcome to CampusConnect! Browse mentors to start scheduling sessions.',
           time: 'Now',
           icon: PlusCircle,
-          color: 'text-brand-400 bg-brand-500/10'
+          color: 'text-brand-600 bg-brand-50 border-brand-200'
         }
       ];
     }
@@ -49,22 +47,22 @@ const RecentActivity = ({ bookings, role }) => {
   const activeLogs = getActivities();
 
   return (
-    <div className="glass-panel p-6 rounded-2xl border border-slate-800 shadow-sm space-y-4">
-      <h3 className="font-sans font-bold text-white text-base">Recent Activities</h3>
+    <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+      <h3 className="font-sans font-bold text-slate-900 text-base">Recent Activities</h3>
       
-      <div className="relative border-l border-slate-850 pl-4 space-y-5 ml-2">
+      <div className="relative border-l border-slate-200 pl-4 space-y-5 ml-2">
         {activeLogs.map((log) => {
           const Icon = log.icon;
           return (
             <div key={log.id} className="relative flex items-start gap-3">
               {/* Timeline dot */}
-              <span className={`absolute left-[-25px] top-0.5 w-4.5 h-4.5 rounded-full flex items-center justify-center border border-dark-bg ${log.color}`}>
-                <Icon className="w-2.5 h-2.5" />
+              <span className={`absolute -left-6 top-0.5 w-5 h-5 rounded-full flex items-center justify-center border shadow-xs ${log.color}`}>
+                <Icon className="w-3 h-3" />
               </span>
               
               <div className="text-left min-w-0">
-                <p className="text-xs text-slate-300 font-sans leading-relaxed">{log.message}</p>
-                <span className="text-[10px] text-slate-500 font-medium block mt-1">{log.time}</span>
+                <p className="text-xs text-slate-700 font-sans font-medium leading-relaxed">{log.message}</p>
+                <span className="text-[10px] text-slate-400 font-semibold block mt-1">{log.time}</span>
               </div>
             </div>
           );

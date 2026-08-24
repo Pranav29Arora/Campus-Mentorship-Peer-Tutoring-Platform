@@ -3,16 +3,18 @@ import { Link } from 'react-router-dom';
 import { Shield, Users, Calendar, BarChart3 } from 'lucide-react';
 
 const AdminSidebar = ({ activeTab }) => {
-  const baseItemClass = "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300";
+  const baseItemClass = "flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all duration-200";
   
-  const activeClass = `${baseItemClass} bg-brand-500/10 text-brand-400 border border-brand-500/25`;
-  const inactiveClass = `${baseItemClass} text-slate-400 hover:text-white hover:bg-slate-800/40`;
+  const activeClass = `${baseItemClass} bg-brand-50 text-brand-700 border border-brand-200 shadow-xs`;
+  const inactiveClass = `${baseItemClass} text-slate-600 hover:text-brand-600 hover:bg-slate-50`;
 
   return (
-    <div className="glass-panel p-5 rounded-2xl border border-slate-800 shadow-sm h-full flex flex-col gap-6 text-left">
-      <div className="flex items-center gap-2 pb-4 border-b border-slate-800/80">
-        <Shield className="w-5 h-5 text-rose-500" />
-        <h3 className="font-sans font-bold text-white text-base">Admin Panel</h3>
+    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm h-full flex flex-col gap-6 text-left">
+      <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
+        <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+          <Shield className="w-4.5 h-4.5" />
+        </div>
+        <h3 className="font-sans font-extrabold text-slate-900 text-base">Admin Panel</h3>
       </div>
 
       <nav className="flex flex-col gap-2">

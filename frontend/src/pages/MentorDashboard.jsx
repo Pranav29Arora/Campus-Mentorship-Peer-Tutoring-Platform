@@ -8,7 +8,7 @@ import UpcomingSession from '../components/dashboard/UpcomingSession';
 import RecentActivity from '../components/dashboard/RecentActivity';
 import ReviewCard from '../components/reviews/ReviewCard';
 import Button from '../components/common/Button';
-import { Calendar, Clock, Users, Star, Award, PlusCircle, UserCheck } from 'lucide-react';
+import { Calendar, Clock, Users, Star, Award, PlusCircle, UserCheck, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const MentorDashboard = () => {
@@ -39,33 +39,37 @@ const MentorDashboard = () => {
   // Unique students connected
   const totalStudents = new Set(mentorBookings.map(b => b.studentId)).size;
 
-  // Filter today's sessions (using YYYY-MM-DD formatted date string comparison)
-  const todayStr = new Date().toISOString().split('T')[0]; // "2026-08-19"
+  // Filter today's sessions
+  const todayStr = new Date().toISOString().split('T')[0];
   const todaySessions = mentorBookings.filter(b => b.date === todayStr && b.status === 'upcoming');
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-bg">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
 
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 text-left">
         
         {/* Welcome Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-extrabold text-white font-sans">Mentor Dashboard</h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Academic mentoring portal for <strong className="text-white font-semibold">{user?.name}</strong>.
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold mb-2">
+              <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+              Mentor Workspace
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans">Mentor Dashboard</h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Academic mentoring portal for <strong className="text-slate-800 font-bold">{user?.name}</strong>. Manage bookings and publish time slots.
             </p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2.5">
             <Link to="/mentor/availability">
-              <Button variant="outline" size="sm" icon={PlusCircle}>
+              <Button variant="primary" size="sm" icon={PlusCircle} className="font-bold shadow-md shadow-brand-500/25">
                 Add Availability
               </Button>
             </Link>
             <Link to="/mentor/profile">
-              <Button variant="glass" size="sm" icon={UserCheck}>
+              <Button variant="outline" size="sm" icon={UserCheck} className="font-bold">
                 Edit Profile
               </Button>
             </Link>
@@ -108,12 +112,12 @@ const MentorDashboard = () => {
             
             {/* Today's appointments */}
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white font-sans flex items-center gap-2">
-                <Clock className="w-5 h-5 text-brand-500" />
+              <h3 className="text-lg font-bold text-slate-900 font-sans flex items-center gap-2">
+                <Clock className="w-5 h-5 text-brand-600" />
                 Today's Sessions
               </h3>
               {todaySessions.length === 0 ? (
-                <div className="glass-panel p-6 text-center rounded-2xl border border-slate-800 text-slate-400 text-sm">
+                <div className="bg-white p-6 text-center rounded-3xl border border-slate-200 text-slate-500 text-sm shadow-sm font-medium">
                   No sessions scheduled for today ({todayStr}).
                 </div>
               ) : (
@@ -127,12 +131,12 @@ const MentorDashboard = () => {
 
             {/* Upcoming bookings list */}
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white font-sans flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-brand-500" />
+              <h3 className="text-lg font-bold text-slate-900 font-sans flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-brand-600" />
                 All Scheduled Bookings
               </h3>
               {upcomingBookings.length === 0 ? (
-                <div className="glass-panel p-8 text-center rounded-2xl border border-slate-800 text-slate-400 text-sm">
+                <div className="bg-white p-8 text-center rounded-3xl border border-slate-200 text-slate-500 text-sm shadow-sm font-medium">
                   You have no upcoming tutoring sessions scheduled.
                 </div>
               ) : (
@@ -146,12 +150,12 @@ const MentorDashboard = () => {
 
             {/* Recent reviews list */}
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-white font-sans flex items-center gap-2">
-                <Star className="w-5 h-5 text-brand-500" />
+              <h3 className="text-lg font-bold text-slate-900 font-sans flex items-center gap-2">
+                <Star className="w-5 h-5 text-brand-600" />
                 Recent Student Reviews
               </h3>
               {reviews.length === 0 ? (
-                <p className="text-xs text-slate-500 italic pl-1">No student reviews received yet.</p>
+                <p className="text-xs text-slate-400 italic pl-1">No student reviews received yet.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {reviews.slice(0, 4).map(r => (

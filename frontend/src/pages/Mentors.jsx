@@ -10,7 +10,7 @@ import EmptyState from '../components/common/EmptyState';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { AppContext } from '../context/AppContext';
 import { AuthContext } from '../context/AuthContext';
-import { GraduationCap, AlertTriangle } from 'lucide-react';
+import { GraduationCap, AlertTriangle, Sparkles } from 'lucide-react';
 import Button from '../components/common/Button';
 
 const Mentors = () => {
@@ -73,25 +73,28 @@ const Mentors = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-dark-bg">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
 
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
         {/* Banner Title */}
-        <div className="text-left space-y-2 mb-10">
-          <h1 className="text-3xl font-extrabold text-white font-sans flex items-center gap-2">
-            <GraduationCap className="w-8 h-8 text-brand-500" />
+        <div className="text-left space-y-2 mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold">
+            <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+            Verified Senior Directory
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans flex items-center gap-3">
             Discover Campus Mentors
           </h1>
-          <p className="text-sm text-slate-400">
-            Find and schedule 1-on-1 calls with experienced seniors from your department.
+          <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
+            Find and schedule 1-on-1 calls with experienced seniors from your department for course guidance, viva review, and interview prep.
           </p>
         </div>
 
         {authError && (
-          <div className="glass-panel p-4 mb-6 rounded-2xl border border-rose-500/20 bg-rose-500/5 text-left text-sm text-rose-400 flex items-center gap-3 animate-bounce">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div className="p-4 mb-6 rounded-2xl border border-rose-200 bg-rose-50 text-left text-sm text-rose-700 font-medium flex items-center gap-3 shadow-sm animate-bounce">
+            <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0" />
             <p>{authError}</p>
           </div>
         )}
