@@ -82,6 +82,25 @@ const VideoCall = () => {
     }
   }, [activeTab, chatMessages]);
 
+  // Synchronize stream objects with video DOM elements (handling React mount/unmount lifecycle)
+  useEffect(() => {
+    if (localVideoRef.current && localVideoRef.current.srcObject !== localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream, viewMode, screenShareActive, peerScreenShareActive, connectionState]);
+
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteVideoRef.current.srcObject !== remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream, viewMode, screenShareActive, peerScreenShareActive, connectionState]);
+
+  useEffect(() => {
+    if (screenVideoRef.current && screenVideoRef.current.srcObject !== screenStream) {
+      screenVideoRef.current.srcObject = screenStream;
+    }
+  }, [screenStream, viewMode, screenShareActive, peerScreenShareActive, connectionState]);
+
   // Stream cleanup helper
   const stopAllTracks = () => {
     if (localStream) {
