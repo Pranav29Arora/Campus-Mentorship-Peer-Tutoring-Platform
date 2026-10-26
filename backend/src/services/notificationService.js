@@ -1,31 +1,66 @@
-const db = require('./dbStore');
+const supabase = require('../config/supabase');
+
+const formatNotification = (n) => ({
+  id: n.id,
+  userId: n.user_id,
+  title: n.title,
+  message: n.message,
+  type: n.type,
+  read: n.read,
+  createdAt: n.created_at
+});
 
 const getNotificationsForUser = async (userId) => {
-  return db.notifications
-    .filter(n => n.userId === userId)
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Failed to fetch notifications from Supabase:', error);
+    return [];
+  }
+
+  return (data || []).map(formatNotification);
 };
 
 const createNotification = async (userId, { title, message, type }) => {
   const newNotif = {
     id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-    userId,
+    user_id: userId,
     title,
     message,
-    type, // 'booking_created', 'booking_cancelled', etc.
+    type: type || 'general',
     read: false,
-    createdAt: new Date().toISOString()
+    created_at: new Date().toISOString()
   };
-  db.notifications.push(newNotif);
-  return newNotif;
+
+  const { error } = await supabase
+    .from('notifications')
+    .insert([newNotif]);
+
+  if (error) {
+    console.error('Error inserting notification to Supabase:', error);
+  }
+
+  return formatNotification(newNotif);
 };
 
 const markAsRead = async (notifId) => {
-  const notif = db.notifications.find(n => n.id === notifId);
-  if (notif) {
-    notif.read = true;
+  const { data, error } = await supabase
+    .from('notifications')
+    .update({ read: true })
+    .eq('id', notifId)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error updating notification read state:', error);
+    return null;
   }
-  return notif;
+
+  return data ? formatNotification(data) : null;
 };
 
 module.exports = {

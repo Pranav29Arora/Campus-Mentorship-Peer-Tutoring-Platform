@@ -1,19 +1,56 @@
-const db = require('./dbStore');
+const supabase = require('../config/supabase');
+
+const formatReview = (r) => ({
+  id: r.id,
+  bookingId: r.booking_id,
+  studentId: r.student_id,
+  studentName: r.student?.name || 'Junior Student',
+  mentorId: r.mentor_id,
+  rating: r.rating,
+  comment: r.comment || '',
+  createdAt: r.created_at
+});
 
 const getReviewsForMentor = async (mentorId) => {
-  return db.reviews.filter(r => r.mentorId === mentorId);
+  const { data, error } = await supabase
+    .from('reviews')
+    .select(`
+      id,
+      booking_id,
+      student_id,
+      mentor_id,
+      rating,
+      comment,
+      created_at,
+      student:student_id (
+        name
+      )
+    `)
+    .eq('mentor_id', mentorId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to fetch reviews: ${error.message}`);
+  }
+
+  return (data || []).map(formatReview);
 };
 
 const createReview = async (studentId, reviewData) => {
   const { bookingId, rating, comment } = reviewData;
 
-  // Validate booking completion
-  const booking = db.bookings.find(b => b.id === bookingId);
-  if (!booking) {
+  // 1. Validate booking
+  const { data: booking, error: bookingErr } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', bookingId)
+    .maybeSingle();
+
+  if (bookingErr || !booking) {
     throw new Error('Booking session not found.');
   }
 
-  if (booking.studentId !== studentId) {
+  if (booking.student_id !== studentId) {
     throw new Error('Unauthorized. You can only review your own tutoring sessions.');
   }
 
@@ -21,44 +58,78 @@ const createReview = async (studentId, reviewData) => {
     throw new Error('Cannot review this booking. The session is not marked as completed yet.');
   }
 
-  // Prevent multiple reviews for the same booking
-  const duplicate = db.reviews.find(r => r.bookingId === bookingId);
+  // 2. Prevent duplicate review for the same booking
+  const { data: duplicate } = await supabase
+    .from('reviews')
+    .select('id')
+    .eq('booking_id', bookingId)
+    .maybeSingle();
+
   if (duplicate) {
     throw new Error('You have already submitted a review for this tutoring session.');
   }
 
-  // Resolve student name
-  const student = db.users.find(u => u.id === studentId);
-  const studentName = student ? student.name : 'Junior Student';
+  // 3. Resolve student name
+  const { data: student } = await supabase
+    .from('users')
+    .select('name')
+    .eq('id', studentId)
+    .maybeSingle();
 
-  const newReview = {
-    id: `review_${Date.now()}`,
+  const studentName = student?.name || 'Junior Student';
+
+  // 4. Insert review into Supabase
+  const reviewId = `review_${Date.now()}`;
+  const newReviewRow = {
+    id: reviewId,
+    booking_id: bookingId,
+    student_id: studentId,
+    mentor_id: booking.mentor_id,
+    rating: parseInt(rating),
+    comment: comment || '',
+    created_at: new Date().toISOString()
+  };
+
+  const { error: insertErr } = await supabase
+    .from('reviews')
+    .insert([newReviewRow]);
+
+  if (insertErr) {
+    throw new Error(`Failed to save review: ${insertErr.message}`);
+  }
+
+  // 5. Mark booking as reviewed
+  await supabase
+    .from('bookings')
+    .update({ is_reviewed: true })
+    .eq('id', bookingId);
+
+  // 6. Recalculate mentor's average rating
+  const { data: mentorReviews } = await supabase
+    .from('reviews')
+    .select('rating')
+    .eq('mentor_id', booking.mentor_id);
+
+  if (mentorReviews && mentorReviews.length > 0) {
+    const totalStars = mentorReviews.reduce((sum, r) => sum + r.rating, 0);
+    const avg = parseFloat((totalStars / mentorReviews.length).toFixed(1));
+
+    await supabase
+      .from('mentors')
+      .update({ rating: avg })
+      .eq('id', booking.mentor_id);
+  }
+
+  return {
+    id: reviewId,
     bookingId,
     studentId,
     studentName,
-    mentorId: booking.mentorId,
+    mentorId: booking.mentor_id,
     rating: parseInt(rating),
-    comment,
-    createdAt: new Date().toISOString()
+    comment: comment || '',
+    createdAt: newReviewRow.created_at
   };
-
-  db.reviews.push(newReview);
-  booking.isReviewed = true;
-
-  // Recalculate mentor's average rating
-  const mentorReviews = db.reviews.filter(r => r.mentorId === booking.mentorId);
-  if (mentorReviews.length > 0) {
-    const totalRating = mentorReviews.reduce((sum, r) => sum + r.rating, 0);
-    const avgRating = totalRating / mentorReviews.length;
-
-    // Update mentor rating to 1 decimal place
-    const mentor = db.mentors.find(m => m.id === booking.mentorId);
-    if (mentor) {
-      mentor.rating = parseFloat(avgRating.toFixed(1));
-    }
-  }
-
-  return newReview;
 };
 
 module.exports = {

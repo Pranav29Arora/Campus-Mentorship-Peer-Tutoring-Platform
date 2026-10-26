@@ -130,88 +130,12 @@ const initialMentors = [
   }
 ];
 
-const initialAvailability = [
-  {
-    id: 'slot001',
-    mentorId: 'mentor001', // Rahul Sharma
-    date: '2026-08-20',
-    startTime: '10:00 AM',
-    endTime: '11:00 AM',
-    status: 'available',
-    subject: 'JavaScript'
-  },
-  {
-    id: 'slot002',
-    mentorId: 'mentor001',
-    date: '2026-08-20',
-    startTime: '11:00 AM',
-    endTime: '12:00 PM',
-    status: 'available',
-    subject: 'React'
-  },
-  {
-    id: 'slot003',
-    mentorId: 'mentor002', // Priya Singh
-    date: '2026-08-20',
-    startTime: '02:00 PM',
-    endTime: '03:00 PM',
-    status: 'available',
-    subject: 'Python'
-  },
-  {
-    id: 'slot004',
-    mentorId: 'mentor002',
-    date: '2026-08-21',
-    startTime: '10:00 AM',
-    endTime: '11:00 AM',
-    status: 'available',
-    subject: 'Machine Learning'
-  }
-];
+const initialAvailability = [];
 
-const initialBookings = [
-  {
-    id: 'booking001',
-    studentId: 'student_demo',
-    studentName: 'Arjun Mehta',
-    mentorId: 'mentor001',
-    mentorName: 'Rahul Sharma',
-    subject: 'JavaScript',
-    date: '2026-08-18',
-    startTime: '10:00 AM',
-    endTime: '11:00 AM',
-    status: 'completed',
-    meetingStatus: 'disconnected',
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: 'booking002',
-    studentId: 'student_demo',
-    studentName: 'Arjun Mehta',
-    mentorId: 'mentor002',
-    mentorName: 'Priya Singh',
-    subject: 'Python',
-    date: '2026-08-20',
-    startTime: '02:00 PM',
-    endTime: '03:00 PM',
-    status: 'upcoming',
-    meetingStatus: 'disconnected',
-    createdAt: new Date().toISOString()
-  }
-];
+const initialBookings = [];
 
-const initialReviews = [
-  {
-    id: 'review001',
-    bookingId: 'booking001',
-    studentId: 'student_demo',
-    studentName: 'Arjun Mehta',
-    mentorId: 'mentor001',
-    rating: 5,
-    comment: ' Rahul explained JavaScript Closures and Callbacks so well! The practical examples made everything simple to grasp. Highly recommend him.',
-    createdAt: new Date().toISOString()
-  }
-];
+const initialReviews = [];
+
 
 // Active DB Stores
 let users = [...initialUsers];

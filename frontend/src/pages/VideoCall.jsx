@@ -17,7 +17,7 @@ import Peer from 'peerjs';
 const VideoCall = () => {
   const { bookingId } = useParams();
   const { user } = useContext(AuthContext);
-  const { bookings, completeBooking } = useContext(AppContext);
+  const { bookings, completeBooking, fetchBookings } = useContext(AppContext);
   const navigate = useNavigate();
 
   // WebRTC & Stream states
@@ -65,9 +65,15 @@ const VideoCall = () => {
   const isMentor = user?.role === 'mentor';
 
   useEffect(() => {
+    if (user && bookings.length === 0 && fetchBookings) {
+      fetchBookings();
+    }
+  }, [user, bookings.length, fetchBookings]);
+
+  useEffect(() => {
     isUnmountedRef.current = false;
     if (booking) {
-      setPeerName(isMentor ? booking.studentName || 'Junior Student' : booking.mentorName);
+      setPeerName(isMentor ? booking.studentName || 'Junior Student' : booking.mentorName || 'Senior Mentor');
     }
 
     // Initialize local media stream
@@ -78,7 +84,7 @@ const VideoCall = () => {
       // Clean up streams & sockets on unmount
       stopAllTracks();
     };
-  }, [bookingId]);
+  }, [bookingId, booking]);
 
   useEffect(() => {
     if (activeTab === 'chat') {
@@ -246,10 +252,29 @@ const VideoCall = () => {
     });
     socketRef.current = socket;
 
+    // Determine host and port for PeerJS dynamically
+    let peerHost = window.location.hostname;
+    let peerPort = 5001;
+    let peerSecure = window.location.protocol === 'https:';
+
+    try {
+      const urlObj = new URL(serverUrl);
+      peerHost = urlObj.hostname || window.location.hostname;
+      if (urlObj.port) {
+        peerPort = parseInt(urlObj.port);
+      } else {
+        peerPort = urlObj.protocol === 'https:' ? 443 : 80;
+      }
+      peerSecure = urlObj.protocol === 'https:';
+    } catch (e) {
+      console.warn('[WebRTC] Error parsing serverUrl for PeerJS:', e);
+    }
+
     // PeerJS connection
     const peer = new Peer(undefined, {
-      host: window.location.hostname,
-      port: 5001,
+      host: peerHost,
+      port: peerPort,
+      secure: peerSecure,
       path: '/peerjs',
       config: {
         iceServers: [
@@ -266,11 +291,12 @@ const VideoCall = () => {
 
       socket.emit('join-room', {
         bookingId,
-        userId: user.id,
-        userName: user.name,
+        userId: user?.id || `user_${Date.now()}`,
+        userName: user?.name || 'Participant',
         peerId
       });
     });
+
 
     // Receive incoming call
     peer.on('call', (incomingCall) => {
@@ -479,8 +505,8 @@ const VideoCall = () => {
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const msgObj = {
       id: Date.now(),
-      senderName: user.name,
-      role: user.role,
+      senderName: user?.name || 'Participant',
+      role: user?.role || 'student',
       text: newMessage.trim(),
       time: timeStr,
       isSystem: false
@@ -493,8 +519,8 @@ const VideoCall = () => {
       socketRef.current.emit('send-message', {
         bookingId,
         message: newMessage.trim(),
-        senderName: user.name,
-        role: user.role,
+        senderName: user?.name || 'Participant',
+        role: user?.role || 'student',
         timestamp: timeStr
       });
     }
@@ -525,7 +551,7 @@ const VideoCall = () => {
       }
     }
     stopAllTracks();
-    navigate(`/${user.role}/dashboard`);
+    navigate(`/${user?.role || 'student'}/dashboard`);
   };
 
   return (

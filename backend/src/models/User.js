@@ -1,38 +1,21 @@
-// Documented Schema model representing a User
-// This maps directly to Firebase Auth / Firestore or MongoDB User Collection.
+// Documented Model representing a User in Supabase PostgreSQL
+// Table: 'users'
 
 class User {
-  constructor({ id, name, email, rollNumber, passwordHash, role, department, year, avatar, status = 'active', createdAt }) {
-    this.id = id;                     // String (Firebase UID or MongoDB ObjectId)
+  constructor({ id, name, email, rollNumber, passwordHash, role, department, year, avatar, status = 'active', createdAt, updatedAt }) {
+    this.id = id;                     // String (Primary Key text)
     this.name = name;                 // String
-    this.email = email;               // String
-    this.rollNumber = rollNumber;     // String (University Roll Number)
-    this.passwordHash = passwordHash; // String (bcrypt hashed password)
+    this.email = email;               // String (Unique)
+    this.rollNumber = rollNumber;     // String (Unique University Roll Number, db: roll_number)
+    this.passwordHash = passwordHash; // String (bcrypt hashed password, db: password_hash)
     this.role = role;                 // String ('student' | 'mentor' | 'admin')
     this.department = department;     // String (e.g. 'Computer Science')
     this.year = year;                 // Number (1 | 2 | 3 | 4)
-    this.avatar = avatar;             // String (Avatar URL or path)
+    this.avatar = avatar;             // String (Avatar URL)
     this.status = status;             // String ('active' | 'disabled')
     this.createdAt = createdAt || new Date().toISOString();
+    this.updatedAt = updatedAt || new Date().toISOString();
   }
 }
-
-/*
-Example Mongoose Model configuration for future MongoDB setup:
-
-const mongoose = require('mongoose');
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  passwordHash: { type: String, required: true },
-  role: { type: String, enum: ['student', 'mentor', 'admin'], default: 'student' },
-  department: { type: String },
-  year: { type: Number },
-  avatar: { type: String },
-  status: { type: String, enum: ['active', 'disabled'], default: 'active' }
-}, { timestamps: true });
-
-module.exports = mongoose.model('User', userSchema);
-*/
 
 module.exports = User;

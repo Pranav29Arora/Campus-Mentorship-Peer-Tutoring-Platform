@@ -74,20 +74,20 @@ Initially, `VITE_USE_MOCK_DATA=true` is set.
 
 When you resume development of this project, you must follow these specific implementation guidelines:
 
-### Phase 1: Activate JWT & bcrypt (Authentications)
-1. Navigate to the backend service [authService.js](file:///Users/pranav/Desktop/Campus%20Mentorship/backend/src/services/authService.js).
-2. Wire up the password validation comparison checks to call the bcrypt helper [password.js](file:///Users/pranav/Desktop/Campus%20Mentorship/backend/src/utils/password.js), replacing the placeholder password matching checks (`student123`, etc.).
-3. Update [authMiddleware.js](file:///Users/pranav/Desktop/Campus%20Mentorship/backend/src/middleware/authMiddleware.js) to enforce verification of signed JSON Web Tokens using [jwt.js](file:///Users/pranav/Desktop/Campus%20Mentorship/backend/src/utils/jwt.js).
+### Phase 1: Activate JWT & bcrypt (Authentications) - COMPLETED
+1. Backend service [authService.js](file:///Users/pranav/Desktop/Campus%20Mentorship/backend/src/services/authService.js) verified with bcrypt password hashing and token generation.
+2. [authMiddleware.js](file:///Users/pranav/Desktop/Campus%20Mentorship/backend/src/middleware/authMiddleware.js) enforces verification of signed JSON Web Tokens.
 
-### Phase 2: Database Migration (Mongoose MongoDB)
-1. Add `db.js` in `backend/src/config/` to initialize `mongoose` connection scripts.
-2. In the models folder `backend/src/models/`, convert the class models definitions into active Mongoose Schemas.
-3. In each backend service file (e.g. [bookingService.js](file:///Users/pranav/Desktop/Campus%20Mentorship/backend/src/services/bookingService.js)), swap local array pushes with standard database queries:
-   * `Booking.find(...)`
-   * `new Booking(...).save()`
-   * `Booking.findByIdAndUpdate(...)`
-4. Toggle the frontend settings: in [frontend/.env](file:///Users/pranav/Desktop/Campus%20Mentorship/frontend/.env), set `VITE_USE_MOCK_DATA=false` so the service layer routes requests directly to Axios endpoints.
+### Phase 2: Database Migration (Supabase PostgreSQL) - COMPLETED
+1. **Remote Database Connected**: Supabase project `vxzbrmrnziaplrkbjhxc` configured via `@supabase/supabase-js`.
+2. **PostgreSQL Tables Provisioned**: `users`, `mentors`, `availability`, `bookings`, `reviews`, `notifications`.
+3. **Foreign Keys & Performance Indexes**: Explicit composite and FK indexes created for fast joins, cascading deletes, and conflict checks.
+4. **Row Level Security (RLS)**: RLS enabled across all tables with clean security policies.
+5. **Backend Service Layer**: `authService.js`, `mentorService.js`, `availabilityService.js`, `bookingService.js`, `reviewService.js`, `notificationService.js`, and `adminController.js` actively connected to Supabase PostgreSQL.
+6. **Data Seeding**: Verified with `backend/src/scripts/seedSupabase.js` populating demo students, mentors, slots, bookings, and reviews.
+7. **Frontend Config**: `VITE_USE_MOCK_DATA=false` active in `frontend/.env`, pointing directly to the Express REST API and Supabase database.
 
 ### Phase 3: PeerJS & WebRTC Signaling
 1. Ensure the PeerJS client script in [VideoCall.jsx](file:///Users/pranav/Desktop/Campus%20Mentorship/frontend/src/pages/VideoCall.jsx) correctly initializes and connects to the Express signaling server on port 5001.
 2. In production, configure environment variables for the STUN/TURN servers to allow media streams to traverse strict university firewall rules.
+

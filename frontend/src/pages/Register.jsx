@@ -57,7 +57,7 @@ const Register = () => {
     }
 
     setLoading(true);
-    try {
+    try { 
       const payload = {
         name: name.trim(),
         email: email.trim(),

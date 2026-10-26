@@ -16,7 +16,7 @@ const app = express();
 
 // Core middlewares
 app.use(cors({
-  origin: env.CORS_ORIGIN,
+  origin: true,
   credentials: true
 }));
 app.use(express.json());

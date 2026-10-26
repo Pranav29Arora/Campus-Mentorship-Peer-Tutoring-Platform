@@ -13,11 +13,22 @@ const KEYS = {
   REVIEWS: 'cc_reviews',
   NOTIFICATIONS: 'cc_notifications',
   CURRENT_USER: 'cc_current_user',
-  TOKEN: 'cc_auth_token'
+  TOKEN: 'cc_auth_token',
+  VERSION: 'cc_storage_v2'
 };
 
 // Initialize localStorage with mock data if not already set
 export const initStorage = () => {
+  // Purge sample activity data if migrating from earlier versions
+  const currentVersion = localStorage.getItem(KEYS.VERSION);
+  if (currentVersion !== 'v2') {
+    localStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(mockAvailability));
+    localStorage.setItem(KEYS.BOOKINGS, JSON.stringify(mockBookings));
+    localStorage.setItem(KEYS.REVIEWS, JSON.stringify(mockReviews));
+    localStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(mockNotifications));
+    localStorage.setItem(KEYS.VERSION, 'v2');
+  }
+
   if (!localStorage.getItem(KEYS.USERS)) {
     localStorage.setItem(KEYS.USERS, JSON.stringify(mockUsers));
   }

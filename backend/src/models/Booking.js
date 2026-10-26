@@ -1,34 +1,21 @@
-// Documented Schema model representing a Booking session
+// Documented Model representing a Booking in Supabase PostgreSQL
+// Table: 'bookings'
 
 class Booking {
-  constructor({ id, studentId, mentorId, date, startTime, endTime, status = 'upcoming', meetingStatus = 'disconnected', createdAt }) {
-    this.id = id;                     // String
-    this.studentId = studentId;       // String (References User.id)
-    this.mentorId = mentorId;         // String (References Mentor.id)
+  constructor({ id, studentId, mentorId, subject, date, startTime, endTime, status = 'upcoming', meetingStatus = 'disconnected', isReviewed = false, createdAt, updatedAt }) {
+    this.id = id;                     // String (Primary key)
+    this.studentId = studentId;       // String (FK references users.id, db: student_id)
+    this.mentorId = mentorId;         // String (FK references mentors.id, db: mentor_id)
+    this.subject = subject;           // String
     this.date = date;                 // String (YYYY-MM-DD)
-    this.startTime = startTime;       // String (HH:MM e.g. "10:00")
-    this.endTime = endTime;           // String (HH:MM e.g. "11:00")
+    this.startTime = startTime;       // String (HH:MM e.g. "10:00", db: start_time)
+    this.endTime = endTime;           // String (HH:MM e.g. "11:00", db: end_time)
     this.status = status;             // String ('upcoming' | 'completed' | 'cancelled')
-    this.meetingStatus = meetingStatus; // String ('disconnected' | 'connecting' | 'connected')
+    this.meetingStatus = meetingStatus; // String ('disconnected' | 'connecting' | 'connected', db: meeting_status)
+    this.isReviewed = isReviewed;     // Boolean (db: is_reviewed)
     this.createdAt = createdAt || new Date().toISOString();
+    this.updatedAt = updatedAt || new Date().toISOString();
   }
 }
-
-/*
-Example Mongoose Model configuration:
-
-const mongoose = require('mongoose');
-const bookingSchema = new mongoose.Schema({
-  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  mentorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Mentor', required: true },
-  date: { type: String, required: true },
-  startTime: { type: String, required: true },
-  endTime: { type: String, required: true },
-  status: { type: String, enum: ['upcoming', 'completed', 'cancelled'], default: 'upcoming' },
-  meetingStatus: { type: String, enum: ['disconnected', 'connecting', 'connected'], default: 'disconnected' }
-}, { timestamps: true });
-
-module.exports = mongoose.model('Booking', bookingSchema);
-*/
 
 module.exports = Booking;

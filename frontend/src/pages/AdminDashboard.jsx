@@ -10,6 +10,7 @@ import Loader from '../components/common/Loader';
 import { AuthContext } from '../context/AuthContext';
 import { AppContext } from '../context/AppContext';
 import { Shield, Users, Calendar, Award, Star, ToggleLeft, Sparkles } from 'lucide-react';
+import { adminService } from '../services/adminService';
 
 const AdminDashboard = ({ activeTab = 'stats' }) => {
   const { user } = useContext(AuthContext);
@@ -35,76 +36,31 @@ const AdminDashboard = ({ activeTab = 'stats' }) => {
     loadAdminData();
   }, [bookings]);
 
-  const loadAdminData = () => {
+  const loadAdminData = async () => {
     setLoading(true);
-    // Load users from storage
-    const allUsers = JSON.parse(localStorage.getItem('cc_users') || '[]');
-    setUsers(allUsers);
-
-    // Compute stats summary
-    const totalStudents = allUsers.filter(u => u.role === 'student').length;
-    const mentorsList = JSON.parse(localStorage.getItem('cc_mentors') || '[]');
-    const totalMentors = mentorsList.length;
-    const totalBookings = bookings.length;
-    const completedSessions = bookings.filter(b => b.status === 'completed').length;
-    const activeUsers = allUsers.filter(u => u.status === 'active').length;
-
-    // Average rating calculation
-    const allReviews = JSON.parse(localStorage.getItem('cc_reviews') || '[]');
-    let avgRating = 5.0;
-    if (allReviews.length > 0) {
-      const sum = allReviews.reduce((t, r) => t + r.rating, 0);
-      avgRating = parseFloat((sum / allReviews.length).toFixed(1));
-    }
-
-    // Sessions over time YYYY-MM-DD
-    const dateCounts = {};
-    bookings.forEach(b => {
-      dateCounts[b.date] = (dateCounts[b.date] || 0) + 1;
-    });
-
-    const sessionsOverTime = Object.keys(dateCounts).map(date => ({
-      date,
-      count: dateCounts[date]
-    })).sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    // Popular subjects
-    const subCounts = {};
-    bookings.forEach(b => {
-      subCounts[b.subject] = (subCounts[b.subject] || 0) + 1;
-    });
-
-    const popularSubjects = Object.keys(subCounts).map(subject => ({
-      subject,
-      count: subCounts[subject]
-    })).sort((a, b) => b.count - a.count).slice(0, 5);
-
-    setStats({
-      summary: {
-        totalStudents,
-        totalMentors,
-        totalBookings,
-        completedSessions,
-        activeUsers,
-        avgRating
-      },
-      charts: {
-        sessionsOverTime,
-        popularSubjects
-      }
-    });
-    setLoading(false);
-  };
-
-  const handleToggleUserStatus = (userId, newStatus) => {
-    const allUsers = JSON.parse(localStorage.getItem('cc_users') || '[]');
-    const idx = allUsers.findIndex(u => u.id === userId);
-    if (idx !== -1) {
-      allUsers[idx].status = newStatus;
-      localStorage.setItem('cc_users', JSON.stringify(allUsers));
-      loadAdminData();
+    try {
+      const [statsData, usersData] = await Promise.all([
+        adminService.getStatistics(),
+        adminService.getUsers()
+      ]);
+      if (statsData) setStats(statsData);
+      if (usersData) setUsers(usersData);
+    } catch (err) {
+      console.error('Failed to load admin dashboard data:', err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleToggleUserStatus = async (userId, newStatus) => {
+    try {
+      await adminService.updateUserStatus(userId, newStatus);
+      await loadAdminData();
+    } catch (err) {
+      console.error('Failed to update user status:', err);
+    }
+  };
+
 
   const { summary } = stats;
 

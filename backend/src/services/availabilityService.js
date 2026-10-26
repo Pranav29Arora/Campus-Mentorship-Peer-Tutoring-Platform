@@ -1,45 +1,81 @@
-const db = require('./dbStore');
+const supabase = require('../config/supabase');
+
+const formatSlot = (s) => ({
+  id: s.id,
+  mentorId: s.mentor_id,
+  date: s.date,
+  startTime: s.start_time,
+  endTime: s.end_time,
+  status: s.status,
+  subject: s.subject,
+  createdAt: s.created_at
+});
 
 const getAvailableSlots = async (mentorId) => {
-  return db.availability.filter(slot => slot.mentorId === mentorId);
+  const { data, error } = await supabase
+    .from('availability')
+    .select('*')
+    .eq('mentor_id', mentorId)
+    .order('date', { ascending: true })
+    .order('start_time', { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to fetch availability slots: ${error.message}`);
+  }
+
+  return (data || []).map(formatSlot);
 };
 
 const createSlot = async (mentorId, slotData) => {
   const { date, startTime, endTime, subject } = slotData;
 
   // Overlap validation
-  const duplicate = db.availability.find(slot => 
-    slot.mentorId === mentorId &&
-    slot.date === date &&
-    slot.startTime === startTime
-  );
+  const { data: existingSlots } = await supabase
+    .from('availability')
+    .select('id')
+    .eq('mentor_id', mentorId)
+    .eq('date', date)
+    .eq('start_time', startTime)
+    .maybeSingle();
 
-  if (duplicate) {
+  if (existingSlots) {
     throw new Error('An availability slot already exists for this date and start time.');
   }
 
   const newSlot = {
     id: `slot_${Date.now()}`,
-    mentorId,
+    mentor_id: mentorId,
     date,
-    startTime,
-    endTime,
+    start_time: startTime,
+    end_time: endTime,
     status: 'available',
     subject: subject || 'General Mentorship'
   };
 
-  db.availability.push(newSlot);
-  return newSlot;
+  const { error } = await supabase
+    .from('availability')
+    .insert([newSlot]);
+
+  if (error) {
+    throw new Error(`Failed to create availability slot: ${error.message}`);
+  }
+
+  return formatSlot(newSlot);
 };
 
 const deleteSlot = async (mentorId, slotId) => {
-  const slotIndex = db.availability.findIndex(slot => slot.id === slotId);
-  if (slotIndex === -1) {
+  // Check slot exists and belongs to mentor
+  const { data: slot, error: fetchErr } = await supabase
+    .from('availability')
+    .select('*')
+    .eq('id', slotId)
+    .maybeSingle();
+
+  if (fetchErr || !slot) {
     throw new Error('Availability slot not found.');
   }
 
-  const slot = db.availability[slotIndex];
-  if (slot.mentorId !== mentorId) {
+  if (slot.mentor_id !== mentorId) {
     throw new Error('Unauthorized. You do not own this slot.');
   }
 
@@ -47,7 +83,15 @@ const deleteSlot = async (mentorId, slotId) => {
     throw new Error('Cannot delete this slot because it has already been booked by a student.');
   }
 
-  db.availability.splice(slotIndex, 1);
+  const { error: deleteErr } = await supabase
+    .from('availability')
+    .delete()
+    .eq('id', slotId);
+
+  if (deleteErr) {
+    throw new Error(`Failed to delete slot: ${deleteErr.message}`);
+  }
+
   return { success: true, message: 'Slot deleted successfully.' };
 };
 

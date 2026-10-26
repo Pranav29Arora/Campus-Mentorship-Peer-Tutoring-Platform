@@ -1,31 +1,17 @@
-// Documented Schema model representing a Mentor's availability slot
+// Documented Model representing an Availability Slot in Supabase PostgreSQL
+// Table: 'availability'
 
 class Availability {
-  constructor({ id, mentorId, date, startTime, endTime, status = 'available', subject }) {
-    this.id = id;               // String
-    this.mentorId = mentorId;   // String (References Mentor.id)
+  constructor({ id, mentorId, date, startTime, endTime, status = 'available', subject = 'General Mentorship', createdAt }) {
+    this.id = id;               // String (Primary key)
+    this.mentorId = mentorId;   // String (FK references mentors.id, db: mentor_id)
     this.date = date;           // String (YYYY-MM-DD)
-    this.startTime = startTime; // String (HH:MM)
-    this.endTime = endTime;     // String (HH:MM)
+    this.startTime = startTime; // String (HH:MM, db: start_time)
+    this.endTime = endTime;     // String (HH:MM, db: end_time)
     this.status = status;       // String ('available' | 'booked')
-    this.subject = subject;     // String (e.g. 'Data Structures')
+    this.subject = subject;     // String
+    this.createdAt = createdAt || new Date().toISOString();
   }
 }
-
-/*
-Example Mongoose Model configuration:
-
-const mongoose = require('mongoose');
-const availabilitySchema = new mongoose.Schema({
-  mentorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Mentor', required: true },
-  date: { type: String, required: true },
-  startTime: { type: String, required: true },
-  endTime: { type: String, required: true },
-  status: { type: String, enum: ['available', 'booked'], default: 'available' },
-  subject: { type: String }
-}, { timestamps: true });
-
-module.exports = mongoose.model('Availability', availabilitySchema);
-*/
 
 module.exports = Availability;

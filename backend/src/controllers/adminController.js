@@ -1,23 +1,50 @@
-const db = require('../services/dbStore');
+const supabase = require('../config/supabase');
 
 const getStatistics = async (req, res, next) => {
   try {
-    const totalStudents = db.users.filter(u => u.role === 'student').length;
-    const totalMentors = db.mentors.length;
-    const totalBookings = db.bookings.length;
-    const completedSessions = db.bookings.filter(b => b.status === 'completed').length;
-    const activeUsers = db.users.filter(u => u.status === 'active').length;
+    // 1. Fetch users summary
+    const { data: users, error: userErr } = await supabase
+      .from('users')
+      .select('id, role, status');
 
-    // Average rating given
-    let avgRating = 0;
-    if (db.reviews.length > 0) {
-      avgRating = db.reviews.reduce((sum, r) => sum + r.rating, 0) / db.reviews.length;
-      avgRating = parseFloat(avgRating.toFixed(2));
+    if (userErr) throw userErr;
+
+    const totalStudents = users.filter(u => u.role === 'student').length;
+    const activeUsers = users.filter(u => u.status === 'active').length;
+
+    // 2. Fetch mentors count
+    const { count: totalMentors, error: mentorErr } = await supabase
+      .from('mentors')
+      .select('*', { count: 'exact', head: true });
+
+    if (mentorErr) throw mentorErr;
+
+    // 3. Fetch bookings for metrics and charts
+    const { data: bookings, error: bookingErr } = await supabase
+      .from('bookings')
+      .select('id, status, date, subject');
+
+    if (bookingErr) throw bookingErr;
+
+    const totalBookings = bookings.length;
+    const completedSessions = bookings.filter(b => b.status === 'completed').length;
+
+    // 4. Fetch reviews for avg rating
+    const { data: reviews, error: reviewErr } = await supabase
+      .from('reviews')
+      .select('rating');
+
+    if (reviewErr) throw reviewErr;
+
+    let avgRating = 5.0;
+    if (reviews && reviews.length > 0) {
+      const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+      avgRating = parseFloat((sum / reviews.length).toFixed(2));
     }
 
-    // Sessions over time (grouped by date)
+    // 5. Sessions over time (grouped by date)
     const bookingsByDate = {};
-    db.bookings.forEach(b => {
+    bookings.forEach(b => {
       bookingsByDate[b.date] = (bookingsByDate[b.date] || 0) + 1;
     });
 
@@ -26,10 +53,11 @@ const getStatistics = async (req, res, next) => {
       count: bookingsByDate[date]
     })).sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Popular subjects
+    // 6. Popular subjects
     const subjectCounts = {};
-    db.bookings.forEach(b => {
-      subjectCounts[b.subject] = (subjectCounts[b.subject] || 0) + 1;
+    bookings.forEach(b => {
+      const sub = b.subject || 'General Mentorship';
+      subjectCounts[sub] = (subjectCounts[sub] || 0) + 1;
     });
 
     const popularSubjects = Object.keys(subjectCounts).map(subject => ({
@@ -42,7 +70,7 @@ const getStatistics = async (req, res, next) => {
       data: {
         summary: {
           totalStudents,
-          totalMentors,
+          totalMentors: totalMentors || 0,
           totalBookings,
           completedSessions,
           activeUsers,
@@ -65,15 +93,29 @@ const getStatistics = async (req, res, next) => {
 
 const getUsers = async (req, res, next) => {
   try {
-    // Filter passwordHash from users list for security
-    const list = db.users.map(u => {
-      const { passwordHash, ...userWithoutHash } = u;
-      return userWithoutHash;
-    });
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, name, email, roll_number, role, department, year, avatar, status, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const formatted = (users || []).map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      rollNumber: u.roll_number,
+      role: u.role,
+      department: u.department,
+      year: u.year,
+      avatar: u.avatar,
+      status: u.status,
+      createdAt: u.created_at
+    }));
 
     res.status(200).json({
       success: true,
-      data: list
+      data: formatted
     });
   } catch (error) {
     res.status(500).json({
@@ -96,8 +138,14 @@ const updateUserStatus = async (req, res, next) => {
       });
     }
 
-    const user = db.users.find(u => u.id === id);
-    if (!user) {
+    // Check if user is admin
+    const { data: user, error: findErr } = await supabase
+      .from('users')
+      .select('id, role')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (findErr || !user) {
       return res.status(404).json({
         success: false,
         message: 'User account not found.'
@@ -111,7 +159,13 @@ const updateUserStatus = async (req, res, next) => {
       });
     }
 
-    user.status = status;
+    const { error: updateErr } = await supabase
+      .from('users')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (updateErr) throw updateErr;
+
     res.status(200).json({
       success: true,
       message: `User status changed to ${status}.`,

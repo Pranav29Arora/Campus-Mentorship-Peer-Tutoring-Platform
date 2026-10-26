@@ -16,7 +16,7 @@ app.use('/peerjs', peerServer);
 // Initialize Socket.io signaling server
 const io = new Server(server, {
   cors: {
-    origin: env.CORS_ORIGIN,
+    origin: '*',
     methods: ['GET', 'POST'],
     credentials: true
   }
