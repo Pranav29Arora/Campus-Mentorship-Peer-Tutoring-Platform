@@ -130,3 +130,84 @@ CREATE POLICY "reviews_insert_policy" ON reviews FOR INSERT TO anon, authenticat
 CREATE POLICY "notifications_select_policy" ON notifications FOR SELECT TO anon, authenticated USING (true);
 CREATE POLICY "notifications_insert_policy" ON notifications FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "notifications_update_policy" ON notifications FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+
+-- Auto-sync new users to Supabase Auth (auth.users and auth.identities)
+CREATE OR REPLACE FUNCTION public.handle_sync_user_to_auth()
+RETURNS trigger AS $$
+DECLARE
+  new_uid uuid;
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = NEW.email) THEN
+    new_uid := gen_random_uuid();
+    
+    INSERT INTO auth.users (
+      instance_id,
+      id,
+      aud,
+      role,
+      email,
+      encrypted_password,
+      email_confirmed_at,
+      raw_app_meta_data,
+      raw_user_meta_data,
+      created_at,
+      updated_at,
+      is_sso_user,
+      is_anonymous
+    ) VALUES (
+      '00000000-0000-0000-0000-000000000000',
+      new_uid,
+      'authenticated',
+      'authenticated',
+      NEW.email,
+      NEW.password_hash,
+      now(),
+      jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
+      jsonb_build_object('name', NEW.name, 'role', NEW.role, 'department', NEW.department, 'roll_number', NEW.roll_number),
+      COALESCE(NEW.created_at, now()),
+      COALESCE(NEW.updated_at, now()),
+      false,
+      false
+    );
+
+    INSERT INTO auth.identities (
+      id,
+      provider_id,
+      user_id,
+      identity_data,
+      provider,
+      last_sign_in_at,
+      created_at,
+      updated_at
+    ) VALUES (
+      new_uid,
+      new_uid::text,
+      new_uid,
+      jsonb_build_object('sub', new_uid::text, 'email', NEW.email),
+      'email',
+      now(),
+      now(),
+      now()
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER on_public_user_created_sync_auth
+  AFTER INSERT ON public.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_sync_user_to_auth();
+
+-- Record login timestamp in auth.users
+CREATE OR REPLACE FUNCTION public.record_user_login(user_email text)
+RETURNS void AS $$
+BEGIN
+  UPDATE auth.users
+  SET last_sign_in_at = now()
+  WHERE email = user_email;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.record_user_login(text) TO anon, authenticated, service_role;
+

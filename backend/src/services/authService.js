@@ -50,6 +50,11 @@ const login = async ({ email, password }) => {
     throw new Error('Invalid email address or password.');
   }
 
+  // Update last sign in time in Supabase auth.users
+  supabase.rpc('record_user_login', { user_email: user.email }).catch(err => {
+    console.warn('Failed to record login timestamp:', err.message);
+  });
+
   // Get linked mentor record if applicable
   let mentorId = null;
   if (user.role === 'mentor') {
