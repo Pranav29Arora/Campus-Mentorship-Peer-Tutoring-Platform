@@ -70,13 +70,16 @@ const VideoCall = () => {
     }
   }, [user, bookings.length, fetchBookings]);
 
+  // Update peerName whenever booking info arrives or changes
   useEffect(() => {
-    isUnmountedRef.current = false;
     if (booking) {
       setPeerName(isMentor ? booking.studentName || 'Junior Student' : booking.mentorName || 'Senior Mentor');
     }
+  }, [booking, isMentor]);
 
-    // Initialize local media stream
+  // Initialize and tear down media stream and connections strictly on mount/unmount and bookingId change
+  useEffect(() => {
+    isUnmountedRef.current = false;
     initializeLocalStream();
 
     return () => {
@@ -84,7 +87,7 @@ const VideoCall = () => {
       // Clean up streams & sockets on unmount
       stopAllTracks();
     };
-  }, [bookingId, booking]);
+  }, [bookingId]);
 
   useEffect(() => {
     if (activeTab === 'chat') {
@@ -314,14 +317,44 @@ const VideoCall = () => {
       });
     });
 
+    // Receive existing participants in room upon joining
+    socket.on('existing-participants', (existingUsers) => {
+      console.log('[Signaling] Existing participants in room:', existingUsers);
+      if (existingUsers && existingUsers.length > 0) {
+        const otherPeer = existingUsers[0];
+        if (otherPeer.userName) {
+          setPeerName(otherPeer.userName);
+        }
+        if (otherPeer.peerId) {
+          console.log(`[PeerJS] Connecting to existing peer ${otherPeer.userName} (${otherPeer.peerId})`);
+          const outgoingCall = peer.call(otherPeer.peerId, stream);
+          currentCallRef.current = outgoingCall;
+
+          outgoingCall.on('stream', (remoteMediaStream) => {
+            console.log('[PeerJS] Received remote stream from existing peer');
+            setRemoteStream(remoteMediaStream);
+            setConnectionState('connected');
+            if (remoteVideoRef.current) {
+              remoteVideoRef.current.srcObject = remoteMediaStream;
+            }
+          });
+        }
+      }
+    });
+
     // Handle peer user connected
     socket.on('user-connected', ({ userId, userName, peerId }) => {
       console.log(`[Signaling] Peer connected: ${userName} (${peerId})`);
-      if (peerId) {
+      if (userName) {
+        setPeerName(userName);
+      }
+      if (peerId && !currentCallRef.current) {
+        console.log(`[PeerJS] Calling newly connected peer: ${userName} (${peerId})`);
         const outgoingCall = peer.call(peerId, stream);
         currentCallRef.current = outgoingCall;
 
         outgoingCall.on('stream', (remoteMediaStream) => {
+          console.log('[PeerJS] Connected to newly connected peer remote stream');
           setRemoteStream(remoteMediaStream);
           setConnectionState('connected');
           if (remoteVideoRef.current) {
@@ -360,11 +393,14 @@ const VideoCall = () => {
       setUnreadChatCount(prev => (activeTab === 'chat' ? 0 : prev + 1));
     });
 
-    socket.on('user-disconnected', () => {
-      console.log('[Signaling] Remote peer disconnected');
+    socket.on('user-disconnected', ({ userName }) => {
+      console.log(`[Signaling] Remote peer disconnected: ${userName || 'Participant'}`);
       setConnectionState('connecting');
       setRemoteStream(null);
       setPeerScreenShareActive(false);
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = null;
+      }
     });
   };
 

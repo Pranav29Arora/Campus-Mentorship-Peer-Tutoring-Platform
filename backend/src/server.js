@@ -23,6 +23,8 @@ const io = new Server(server, {
 });
 
 // WebRTC Socket.io signaling coordination
+const roomUsers = new Map(); // bookingId -> Map(socketId -> { userId, userName, peerId })
+
 io.on('connection', (socket) => {
   console.log(`[Signaling] Peer connected: ${socket.id}`);
 
@@ -30,7 +32,19 @@ io.on('connection', (socket) => {
   socket.on('join-room', ({ bookingId, userId, userName, peerId }) => {
     socket.join(bookingId);
     console.log(`[Signaling] User ${userId} (${userName}) joined room: ${bookingId} (peerId: ${peerId})`);
-    
+
+    if (!roomUsers.has(bookingId)) {
+      roomUsers.set(bookingId, new Map());
+    }
+    const currentRoom = roomUsers.get(bookingId);
+
+    // Send existing users in the room to the newly joined participant
+    const existingUsers = Array.from(currentRoom.values()).filter(u => u.socketId !== socket.id);
+    socket.emit('existing-participants', existingUsers);
+
+    // Register user in the room
+    currentRoom.set(socket.id, { socketId: socket.id, userId, userName, peerId });
+
     // Notify other participants in the room
     socket.to(bookingId).emit('user-connected', { userId, userName, socketId: socket.id, peerId });
   });
@@ -84,7 +98,16 @@ io.on('connection', (socket) => {
   // Peer disconnecting
   socket.on('disconnect', () => {
     console.log(`[Signaling] Peer disconnected: ${socket.id}`);
-    io.emit('user-disconnected', { socketId: socket.id });
+    for (const [bookingId, participants] of roomUsers.entries()) {
+      if (participants.has(socket.id)) {
+        const leavingUser = participants.get(socket.id);
+        participants.delete(socket.id);
+        socket.to(bookingId).emit('user-disconnected', { socketId: socket.id, ...leavingUser });
+        if (participants.size === 0) {
+          roomUsers.delete(bookingId);
+        }
+      }
+    }
   });
 });
 
