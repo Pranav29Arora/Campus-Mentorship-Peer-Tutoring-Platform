@@ -100,18 +100,21 @@ const VideoCall = () => {
   useEffect(() => {
     if (localVideoRef.current && localVideoRef.current.srcObject !== localStream) {
       localVideoRef.current.srcObject = localStream;
+      localVideoRef.current.play?.().catch(() => {});
     }
   }, [localStream, viewMode, screenShareActive, peerScreenShareActive, connectionState]);
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteVideoRef.current.srcObject !== remoteStream) {
       remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play?.().catch(() => {});
     }
   }, [remoteStream, viewMode, screenShareActive, peerScreenShareActive, connectionState]);
 
   useEffect(() => {
     if (screenVideoRef.current && screenVideoRef.current.srcObject !== screenStream) {
       screenVideoRef.current.srcObject = screenStream;
+      screenVideoRef.current.play?.().catch(() => {});
     }
   }, [screenStream, viewMode, screenShareActive, peerScreenShareActive, connectionState]);
 
@@ -729,7 +732,7 @@ const VideoCall = () => {
 
                 {/* Tile 2: Remote Peer */}
                 <div className="relative glass-panel rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center min-h-[320px]">
-                  {connectionState === 'connected' && remoteStream ? (
+                  {remoteStream ? (
                     <video
                       ref={remoteVideoRef}
                       autoPlay
@@ -772,7 +775,7 @@ const VideoCall = () => {
               <div className="relative flex-1 glass-panel rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center min-h-[420px]">
                 
                 {/* Main Featured Remote Stream */}
-                {connectionState === 'connected' && remoteStream ? (
+                {remoteStream ? (
                   <video
                     ref={remoteVideoRef}
                     autoPlay
