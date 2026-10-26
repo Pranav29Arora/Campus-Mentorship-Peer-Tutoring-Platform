@@ -1,5 +1,5 @@
 const availabilityService = require('../services/availabilityService');
-const db = require('../services/dbStore');
+const supabase = require('../config/supabase');
 
 const getSlots = async (req, res, next) => {
   try {
@@ -20,9 +20,14 @@ const getSlots = async (req, res, next) => {
 
 const createSlot = async (req, res, next) => {
   try {
-    // Resolve mentor profile from user credentials
-    const mentor = db.mentors.find(m => m.userId === req.user.id);
-    if (!mentor) {
+    // Resolve mentor profile from user credentials in Supabase
+    const { data: mentor, error: mentorErr } = await supabase
+      .from('mentors')
+      .select('id')
+      .eq('user_id', req.user.id)
+      .maybeSingle();
+
+    if (mentorErr || !mentor) {
       return res.status(403).json({
         success: false,
         message: 'Only registered mentors can create availability slots.'
@@ -53,8 +58,13 @@ const createSlot = async (req, res, next) => {
 
 const deleteSlot = async (req, res, next) => {
   try {
-    const mentor = db.mentors.find(m => m.userId === req.user.id);
-    if (!mentor) {
+    const { data: mentor, error: mentorErr } = await supabase
+      .from('mentors')
+      .select('id')
+      .eq('user_id', req.user.id)
+      .maybeSingle();
+
+    if (mentorErr || !mentor) {
       return res.status(403).json({
         success: false,
         message: 'Unauthorized action.'
