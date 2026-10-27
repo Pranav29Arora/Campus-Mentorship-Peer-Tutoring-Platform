@@ -21,8 +21,8 @@ const Availability = () => {
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
-    if (user && user.mentorId) {
-      fetchAvailability(user.mentorId);
+    if (user && (user.mentorId || user.id)) {
+      fetchAvailability(user.mentorId || user.id);
     }
   }, [user]);
 
@@ -45,7 +45,7 @@ const Availability = () => {
       // Reset form
       setDate('');
     } catch (err) {
-      setFormError(err.message || 'Failed to create availability slot.');
+      setFormError(err.response?.data?.message || err.message || 'Failed to create availability slot.');
     } finally {
       setFormLoading(false);
     }
@@ -55,7 +55,7 @@ const Availability = () => {
     try {
       await deleteAvailabilitySlot(slotId);
     } catch (err) {
-      alert(err.message || 'Failed to delete slot.');
+      alert(err.response?.data?.message || err.message || 'Failed to delete slot.');
     }
   };
 

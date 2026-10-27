@@ -8,14 +8,25 @@ const formatSlot = (s) => ({
   endTime: s.end_time,
   status: s.status,
   subject: s.subject,
-  createdAt: s.created_at
+  createdAt: s.created_at || new Date().toISOString()
 });
 
 const getAvailableSlots = async (mentorId) => {
+  let targetMentorId = mentorId;
+  const { data: mentor } = await supabase
+    .from('mentors')
+    .select('id')
+    .or(`id.eq.${mentorId},user_id.eq.${mentorId}`)
+    .maybeSingle();
+
+  if (mentor) {
+    targetMentorId = mentor.id;
+  }
+
   const { data, error } = await supabase
     .from('availability')
     .select('*')
-    .eq('mentor_id', mentorId)
+    .eq('mentor_id', targetMentorId)
     .order('date', { ascending: true })
     .order('start_time', { ascending: true });
 

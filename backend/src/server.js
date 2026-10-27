@@ -11,6 +11,12 @@ const peerServer = ExpressPeerServer(server, {
   debug: true,
   path: '/'
 });
+peerServer.on('connection', (client) => {
+  console.log(`[PeerServer] Client connected: ${client.getId()}`);
+});
+peerServer.on('disconnect', (client) => {
+  console.log(`[PeerServer] Client disconnected: ${client.getId()}`);
+});
 app.use('/peerjs', peerServer);
 
 // Initialize Socket.io signaling server
@@ -22,6 +28,10 @@ const io = new Server(server, {
   }
 });
 
+// Track which room each socket belongs to and active participants per room
+const socketRoomMap = {};
+const roomParticipants = {}; // { [roomId]: [ { socketId, userId, userName, peerId } ] }
+
 // WebRTC Socket.io signaling coordination
 io.on('connection', (socket) => {
   console.log(`[Signaling] Peer connected: ${socket.id}`);
@@ -29,10 +39,35 @@ io.on('connection', (socket) => {
   // Room coordination
   socket.on('join-room', ({ bookingId, userId, userName, peerId }) => {
     socket.join(bookingId);
-    console.log(`[Signaling] User ${userId} (${userName}) joined room: ${bookingId} (peerId: ${peerId})`);
-    
-    // Notify other participants in the room
-    socket.to(bookingId).emit('user-connected', { userId, userName, socketId: socket.id, peerId });
+    socketRoomMap[socket.id] = bookingId;
+
+    if (!roomParticipants[bookingId]) {
+      roomParticipants[bookingId] = [];
+    }
+
+    // Filter out previous socket for this user if reconnecting
+    roomParticipants[bookingId] = roomParticipants[bookingId].filter(
+      p => p.socketId !== socket.id && p.userId !== userId
+    );
+
+    const existingUsers = [...roomParticipants[bookingId]];
+
+    const newParticipant = { socketId: socket.id, userId, userName, peerId };
+    roomParticipants[bookingId].push(newParticipant);
+
+    console.log(`[Signaling] User ${userId} (${userName}) joined room: ${bookingId} (peerId: ${peerId}). Active users: ${roomParticipants[bookingId].length}`);
+
+    // 1. Send the newly joined user the list of existing participants already in the room
+    socket.emit('room-users', { users: existingUsers });
+
+    // 2. Notify other participants in the room that a new user connected
+    socket.to(bookingId).emit('user-connected', newParticipant);
+  });
+
+  // Relay manual call request / re-negotiation request
+  socket.on('request-call', ({ bookingId, fromPeerId, toPeerId }) => {
+    console.log(`[Signaling] Requesting call in ${bookingId} from ${fromPeerId} to ${toPeerId}`);
+    socket.to(bookingId).emit('call-requested', { fromPeerId, toPeerId, fromSocketId: socket.id });
   });
 
   // Relay WebRTC SDP offer, answer, or ICE candidate
@@ -81,11 +116,27 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Peer disconnecting
-  socket.on('disconnect', () => {
-    console.log(`[Signaling] Peer disconnected: ${socket.id}`);
-    io.emit('user-disconnected', { socketId: socket.id });
-  });
+  // Peer disconnecting or leaving room
+  const handleLeave = (socketId) => {
+    const roomId = socketRoomMap[socketId];
+    if (roomId && roomParticipants[roomId]) {
+      const leavingUser = roomParticipants[roomId].find(p => p.socketId === socketId);
+      roomParticipants[roomId] = roomParticipants[roomId].filter(p => p.socketId !== socketId);
+      if (roomParticipants[roomId].length === 0) {
+        delete roomParticipants[roomId];
+      }
+      console.log(`[Signaling] Socket ${socketId} left room ${roomId}`);
+      socket.to(roomId).emit('user-disconnected', {
+        socketId,
+        userId: leavingUser?.userId,
+        peerId: leavingUser?.peerId
+      });
+      delete socketRoomMap[socketId];
+    }
+  };
+
+  socket.on('leave-room', () => handleLeave(socket.id));
+  socket.on('disconnect', () => handleLeave(socket.id));
 });
 
 const PORT = env.PORT;

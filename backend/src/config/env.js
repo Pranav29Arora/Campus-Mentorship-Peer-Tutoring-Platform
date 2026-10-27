@@ -10,6 +10,8 @@ module.exports = {
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
   FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || 'campusconnect-demo',
   SUPABASE_URL: process.env.SUPABASE_URL || 'https://vxzbrmrnziaplrkbjhxc.supabase.co',
-  SUPABASE_KEY: process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || ''
+  SUPABASE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || '',
+  EMAIL_USER: process.env.EMAIL_USER || '',
+  EMAIL_PASS: process.env.EMAIL_PASS || ''
 };
 

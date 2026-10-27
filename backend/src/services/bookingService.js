@@ -1,5 +1,6 @@
 const supabase = require('../config/supabase');
 const notificationService = require('./notificationService');
+const { sendBookingEmail } = require('../utils/sendEmail');
 
 const formatBooking = (b) => {
   const studentName = b.student?.name || 'Junior Student';
@@ -97,20 +98,22 @@ const createBooking = async (studentId, { mentorId, slotId }) => {
   // 2. Fetch mentor details
   const { data: mentor } = await supabase
     .from('mentors')
-    .select('id, user_id, users:user_id (name)')
+    .select('id, user_id, users:user_id (name, email)')
     .eq('id', mentorId)
     .maybeSingle();
 
   const mentorName = mentor?.users?.name || 'Senior Mentor';
+  const mentorEmail = mentor?.users?.email || '';
 
   // 3. Fetch student details
   const { data: student } = await supabase
     .from('users')
-    .select('name')
+    .select('name, email')
     .eq('id', studentId)
     .maybeSingle();
 
   const studentName = student?.name || 'Junior Student';
+  const studentEmail = student?.email || '';
 
   // 4. Prevent duplicate booking for the same student on the same day & time
   const { data: conflict } = await supabase
@@ -189,6 +192,21 @@ const createBooking = async (studentId, { mentorId, slotId }) => {
       type: 'booking_created'
     });
   }
+
+  // 9. Send email notification to mentor & confirmation to student
+  console.log(`[Booking] Triggering session emails -> Mentor: ${mentorEmail} (${mentorName}), Student: ${studentEmail} (${studentName})`);
+  sendBookingEmail(
+    { name: mentorName, email: mentorEmail },
+    { name: studentName, email: studentEmail },
+    {
+      date: slot.date,
+      startTime: slot.start_time,
+      endTime: slot.end_time,
+      subject: slot.subject
+    }
+  ).catch(emailErr => {
+    console.error('[Email Error] Failed to send booking notification email:', emailErr.message || emailErr);
+  });
 
   return resultBooking;
 };

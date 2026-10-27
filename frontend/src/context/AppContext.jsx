@@ -120,12 +120,13 @@ export const AppProvider = ({ children }) => {
     if (!user || user.role !== 'mentor') return;
     setLoading(true);
     try {
-      const newSlot = await availabilityService.createSlot(user.mentorId, slotData);
+      const newSlot = await availabilityService.createSlot(user.mentorId || user.id, slotData);
       setAvailability(prev => [...prev, newSlot]);
       return newSlot;
     } catch (err) {
-      setError(err.message || 'Failed to add availability slot.');
-      throw err;
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to add availability slot.';
+      setError(errorMsg);
+      throw new Error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -135,11 +136,12 @@ export const AppProvider = ({ children }) => {
     if (!user || user.role !== 'mentor') return;
     setLoading(true);
     try {
-      await availabilityService.deleteSlot(slotId, user.mentorId);
+      await availabilityService.deleteSlot(slotId, user.mentorId || user.id);
       setAvailability(prev => prev.filter(s => s.id !== slotId));
     } catch (err) {
-      setError(err.message || 'Failed to delete slot.');
-      throw err;
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to delete slot.';
+      setError(errorMsg);
+      throw new Error(errorMsg);
     } finally {
       setLoading(false);
     }
