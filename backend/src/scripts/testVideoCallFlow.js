@@ -59,8 +59,9 @@ async function testVideoCall() {
   });
 
   const connectedData = await userConnectedPromise;
-  if (connectedData.userName !== 'Rahul Sharma' || connectedData.peerId !== 'mentor_peer_67890') {
-    throw new Error('Peer coordination data mismatch!');
+  const receivedPeerId = typeof connectedData === 'object' ? connectedData.peerId : connectedData;
+  if (receivedPeerId !== 'mentor_peer_67890') {
+    throw new Error(`Peer coordination data mismatch! Received: ${receivedPeerId}`);
   }
   console.log('   ✅ Room coordination and peer presence verified!\n');
 

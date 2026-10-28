@@ -79,8 +79,22 @@ const updateBooking = async (req, res, next) => {
   }
 };
 
+const deleteBooking = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = await bookingService.deleteBooking(req.user.id, req.user.role, id);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to delete session.'
+    });
+  }
+};
+
 module.exports = {
   getBookings,
   createBooking,
-  updateBooking
+  updateBooking,
+  deleteBooking
 };

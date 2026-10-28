@@ -51,7 +51,12 @@ const Availability = () => {
     }
   };
 
-  const handleDeleteSlot = async (slotId) => {
+  const handleDeleteSlot = async (slotId, isBooked) => {
+    const confirmMsg = isBooked 
+      ? 'This slot is currently BOOKED by a student. Deleting it will also remove the session. Are you sure you want to delete it?' 
+      : 'Are you sure you want to delete this availability slot?';
+    if (!window.confirm(confirmMsg)) return;
+
     try {
       await deleteAvailabilitySlot(slotId);
     } catch (err) {
@@ -186,20 +191,21 @@ const Availability = () => {
                         </div>
                       </div>
 
-                      {isBooked ? (
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1 uppercase">
-                          <Lock className="w-3 h-3" />
-                          Booked
-                        </span>
-                      ) : (
+                      <div className="flex items-center gap-2">
+                        {isBooked && (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1 uppercase">
+                            <Lock className="w-3 h-3" />
+                            Booked
+                          </span>
+                        )}
                         <button
-                          onClick={() => handleDeleteSlot(slot.id)}
+                          onClick={() => handleDeleteSlot(slot.id, isBooked)}
                           className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
-                          title="Delete slot"
+                          title={isBooked ? "Delete booked slot & session" : "Delete slot"}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                      )}
+                      </div>
                     </div>
                   );
                 })}

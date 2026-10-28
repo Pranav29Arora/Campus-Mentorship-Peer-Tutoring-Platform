@@ -96,14 +96,38 @@ const createBooking = async (studentId, { mentorId, slotId }) => {
   }
 
   // 2. Fetch mentor details
-  const { data: mentor } = await supabase
+  let { data: mentor } = await supabase
     .from('mentors')
     .select('id, user_id, users:user_id (name, email)')
     .eq('id', mentorId)
     .maybeSingle();
 
-  const mentorName = mentor?.users?.name || 'Senior Mentor';
-  const mentorEmail = mentor?.users?.email || '';
+  if (!mentor) {
+    const { data: mentorByUserId } = await supabase
+      .from('mentors')
+      .select('id, user_id, users:user_id (name, email)')
+      .eq('user_id', mentorId)
+      .maybeSingle();
+    if (mentorByUserId) mentor = mentorByUserId;
+  }
+
+  let mentorName = mentor?.users?.name;
+  let mentorEmail = mentor?.users?.email;
+
+  if ((!mentorName || !mentorEmail) && mentor?.user_id) {
+    const { data: mentorUser } = await supabase
+      .from('users')
+      .select('name, email')
+      .eq('id', mentor.user_id)
+      .maybeSingle();
+    if (mentorUser) {
+      mentorName = mentorName || mentorUser.name;
+      mentorEmail = mentorEmail || mentorUser.email;
+    }
+  }
+
+  mentorName = mentorName || 'Senior Mentor';
+  mentorEmail = mentorEmail || '';
 
   // 3. Fetch student details
   const { data: student } = await supabase
@@ -195,18 +219,20 @@ const createBooking = async (studentId, { mentorId, slotId }) => {
 
   // 9. Send email notification to mentor & confirmation to student
   console.log(`[Booking] Triggering session emails -> Mentor: ${mentorEmail} (${mentorName}), Student: ${studentEmail} (${studentName})`);
-  sendBookingEmail(
-    { name: mentorName, email: mentorEmail },
-    { name: studentName, email: studentEmail },
-    {
-      date: slot.date,
-      startTime: slot.start_time,
-      endTime: slot.end_time,
-      subject: slot.subject
-    }
-  ).catch(emailErr => {
+  try {
+    await sendBookingEmail(
+      { name: mentorName, email: mentorEmail },
+      { name: studentName, email: studentEmail },
+      {
+        date: slot.date,
+        startTime: slot.start_time,
+        endTime: slot.end_time,
+        subject: slot.subject
+      }
+    );
+  } catch (emailErr) {
     console.error('[Email Error] Failed to send booking notification email:', emailErr.message || emailErr);
-  });
+  }
 
   return resultBooking;
 };
@@ -317,8 +343,59 @@ const updateBookingStatus = async (userId, role, bookingId, { status }) => {
   };
 };
 
+const deleteBooking = async (userId, role, bookingId) => {
+  const { data: booking, error: fetchErr } = await supabase
+    .from('bookings')
+    .select(`
+      id,
+      student_id,
+      mentor_id,
+      date,
+      start_time,
+      status,
+      mentor:mentor_id (user_id)
+    `)
+    .eq('id', bookingId)
+    .maybeSingle();
+
+  if (fetchErr || !booking) {
+    throw new Error('Booking not found.');
+  }
+
+  const isStudent = booking.student_id === userId;
+  const isMentor = booking.mentor?.user_id === userId;
+  const isAdmin = role === 'admin';
+
+  if (!isStudent && !isMentor && !isAdmin) {
+    throw new Error('Unauthorized action.');
+  }
+
+  // Delete the booking
+  const { error: deleteErr } = await supabase
+    .from('bookings')
+    .delete()
+    .eq('id', bookingId);
+
+  if (deleteErr) {
+    throw new Error(`Failed to delete session: ${deleteErr.message}`);
+  }
+
+  // If this was an upcoming session, revert availability slot back to 'available'
+  if (booking.status === 'upcoming') {
+    await supabase
+      .from('availability')
+      .update({ status: 'available' })
+      .eq('mentor_id', booking.mentor_id)
+      .eq('date', booking.date)
+      .eq('start_time', booking.start_time);
+  }
+
+  return { success: true, message: 'Session deleted successfully.' };
+};
+
 module.exports = {
   getBookings,
   createBooking,
-  updateBookingStatus
+  updateBookingStatus,
+  deleteBooking
 };

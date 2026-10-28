@@ -75,7 +75,7 @@ const createSlot = async (mentorId, slotData) => {
 };
 
 const deleteSlot = async (mentorId, slotId) => {
-  // Check slot exists and belongs to mentor
+  // Check slot exists
   const { data: slot, error: fetchErr } = await supabase
     .from('availability')
     .select('*')
@@ -86,12 +86,30 @@ const deleteSlot = async (mentorId, slotId) => {
     throw new Error('Availability slot not found.');
   }
 
-  if (slot.mentor_id !== mentorId) {
+  // Resolve target mentor ID (supports mentor profile ID and user_id)
+  let targetMentorId = mentorId;
+  const { data: mentor } = await supabase
+    .from('mentors')
+    .select('id, user_id')
+    .or(`id.eq.${mentorId},user_id.eq.${mentorId}`)
+    .maybeSingle();
+
+  if (mentor) {
+    targetMentorId = mentor.id;
+  }
+
+  if (slot.mentor_id !== targetMentorId) {
     throw new Error('Unauthorized. You do not own this slot.');
   }
 
+  // If slot was booked, also remove any associated booking record
   if (slot.status === 'booked') {
-    throw new Error('Cannot delete this slot because it has already been booked by a student.');
+    await supabase
+      .from('bookings')
+      .delete()
+      .eq('mentor_id', targetMentorId)
+      .eq('date', slot.date)
+      .eq('start_time', slot.start_time);
   }
 
   const { error: deleteErr } = await supabase

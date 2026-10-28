@@ -17,16 +17,27 @@ export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load notifications and bookings when user state changes
+  // Load notifications and bookings in parallel when user changes
   useEffect(() => {
-    if (user) {
-      fetchBookings();
-      fetchNotifications();
+    if (user?.id) {
+      Promise.all([
+        bookingService.getBookings(user.id, user.role).catch(err => {
+          console.error('Failed to fetch bookings:', err);
+          return [];
+        }),
+        notificationService.getNotifications(user.id).catch(err => {
+          console.error('Failed to fetch notifications:', err);
+          return [];
+        })
+      ]).then(([bookingsData, notifsData]) => {
+        setBookings(bookingsData || []);
+        setNotifications(notifsData || []);
+      });
     } else {
       setBookings([]);
       setNotifications([]);
     }
-  }, [user]);
+  }, [user?.id, user?.role]);
 
   const fetchMentors = async (filters = {}) => {
     setLoading(true);
@@ -100,6 +111,21 @@ export const AppProvider = ({ children }) => {
     } catch (err) {
       setError(err.message || 'Failed to mark booking completed.');
       throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteBooking = async (bookingId) => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      await bookingService.deleteBooking(bookingId, user.id, user.role);
+      setBookings(prev => prev.filter(b => b.id !== bookingId));
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to delete booking.';
+      setError(errorMsg);
+      throw new Error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -187,6 +213,7 @@ export const AppProvider = ({ children }) => {
       createBooking,
       cancelBooking,
       completeBooking,
+      deleteBooking,
       fetchAvailability,
       addAvailabilitySlot,
       deleteAvailabilitySlot,

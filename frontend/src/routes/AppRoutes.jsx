@@ -1,25 +1,33 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 
-// Pages imports
-import Home from '../pages/Home';
-import Login from '../pages/Login';
-import Register from '../pages/Register';
-import Mentors from '../pages/Mentors';
-import MentorDetails from '../pages/MentorDetails';
-import StudentDashboard from '../pages/StudentDashboard';
-import MentorDashboard from '../pages/MentorDashboard';
-import AdminDashboard from '../pages/AdminDashboard';
-import Availability from '../pages/Availability';
-import Bookings from '../pages/Bookings';
-import VideoCall from '../pages/VideoCall';
-import Profile from '../pages/Profile';
-import NotFound from '../pages/NotFound';
+// Lazy-load page components for lightning-fast initial load and instant refresh
+const Home = lazy(() => import('../pages/Home'));
+const Login = lazy(() => import('../pages/Login'));
+const Register = lazy(() => import('../pages/Register'));
+const Mentors = lazy(() => import('../pages/Mentors'));
+const MentorDetails = lazy(() => import('../pages/MentorDetails'));
+const StudentDashboard = lazy(() => import('../pages/StudentDashboard'));
+const MentorDashboard = lazy(() => import('../pages/MentorDashboard'));
+const AdminDashboard = lazy(() => import('../pages/AdminDashboard'));
+const Availability = lazy(() => import('../pages/Availability'));
+const Bookings = lazy(() => import('../pages/Bookings'));
+const VideoCall = lazy(() => import('../pages/VideoCall'));
+const Profile = lazy(() => import('../pages/Profile'));
+const NotFound = lazy(() => import('../pages/NotFound'));
+
+// Lightweight routing loading placeholder
+const RouteFallback = () => (
+  <div className="min-h-[50vh] flex items-center justify-center">
+    <div className="w-8 h-8 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+  </div>
+);
 
 const AppRoutes = () => {
   return (
-    <Routes>
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
@@ -165,6 +173,7 @@ const AppRoutes = () => {
       <Route path="/404" element={<NotFound />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
+  </Suspense>
   );
 };
 

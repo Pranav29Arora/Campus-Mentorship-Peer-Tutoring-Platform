@@ -147,5 +147,40 @@ export const bookingService = {
       const response = await apiClient.put(`/bookings/${bookingId}`, { status });
       return response.data.data;
     }
+  },
+
+  deleteBooking: async (bookingId, userId, role) => {
+    if (USE_MOCK) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const bookings = storage.getBookings();
+      const idx = bookings.findIndex(b => b.id === bookingId);
+
+      if (idx === -1) {
+        throw new Error('Booking record not found.');
+      }
+
+      const booking = bookings[idx];
+
+      // If upcoming, revert the slot to available
+      if (booking.status === 'upcoming') {
+        const slots = storage.getAvailability();
+        const slotIdx = slots.findIndex(s => 
+          s.mentorId === booking.mentorId &&
+          s.date === booking.date &&
+          s.startTime === booking.startTime
+        );
+        if (slotIdx !== -1) {
+          slots[slotIdx].status = 'available';
+          storage.setAvailability(slots);
+        }
+      }
+
+      bookings.splice(idx, 1);
+      storage.setBookings(bookings);
+      return true;
+    } else {
+      const response = await apiClient.delete(`/bookings/${bookingId}`);
+      return response.data.success;
+    }
   }
 };

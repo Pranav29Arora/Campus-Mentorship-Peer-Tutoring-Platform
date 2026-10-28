@@ -20,37 +20,52 @@ const formatMentor = (m) => {
   };
 };
 
-const getMentors = async (filters = {}) => {
-  // Query mentors joined with users
-  let query = supabase
-    .from('mentors')
-    .select(`
-      id,
-      user_id,
-      bio,
-      subjects,
-      expertise,
-      rating,
-      total_sessions,
-      created_at,
-      users:user_id (
-        id,
-        name,
-        email,
-        roll_number,
-        department,
-        year,
-        avatar,
-        status
-      )
-    `);
+let mentorsCache = null;
+let mentorsCacheTime = 0;
+const MENTORS_CACHE_TTL = 15000; // 15 seconds
 
-  const { data: mentorsData, error } = await query;
-  if (error) {
-    throw new Error(`Failed to fetch mentors: ${error.message}`);
+const getMentors = async (filters = {}) => {
+  const now = Date.now();
+  let mentorsData;
+
+  // Use cached data if available and fresh, avoiding repetitive Supabase network round-trips
+  if (mentorsCache && now - mentorsCacheTime < MENTORS_CACHE_TTL) {
+    mentorsData = mentorsCache;
+  } else {
+    // Query mentors joined with users
+    const query = supabase
+      .from('mentors')
+      .select(`
+        id,
+        user_id,
+        bio,
+        subjects,
+        expertise,
+        rating,
+        total_sessions,
+        created_at,
+        users:user_id (
+          id,
+          name,
+          email,
+          roll_number,
+          department,
+          year,
+          avatar,
+          status
+        )
+      `);
+
+    const { data, error } = await query;
+    if (error) {
+      throw new Error(`Failed to fetch mentors: ${error.message}`);
+    }
+    mentorsData = data || [];
+    mentorsCache = mentorsData;
+    mentorsCacheTime = now;
   }
 
-  let list = (mentorsData || [])
+  let list = mentorsData
     .filter(m => m.users && m.users.status !== 'disabled')
     .map(formatMentor);
 
@@ -184,6 +199,8 @@ const updateMentorProfile = async (mentorId, updateData) => {
   if (error) {
     throw new Error(`Failed to update mentor profile: ${error.message}`);
   }
+
+  mentorsCache = null; // Invalidate cache immediately
 
   return getMentorById(mentorId);
 };

@@ -65,8 +65,11 @@ export const availabilityService = {
         throw new Error('Unauthorized.');
       }
 
-      if (slot.status === 'booked') {
-        throw new Error('Cannot delete because this session is already booked.');
+      // If slot had a booking in mock storage, remove it as well
+      const bookings = storage.getBookings();
+      const updatedBookings = bookings.filter(b => !(b.mentorId === mentorId && b.date === slot.date && b.startTime === slot.startTime));
+      if (updatedBookings.length !== bookings.length) {
+        storage.setBookings(updatedBookings);
       }
 
       slots.splice(idx, 1);

@@ -37,31 +37,40 @@ io.on('connection', (socket) => {
   console.log(`[Signaling] Peer connected: ${socket.id}`);
 
   // Room coordination
-  socket.on('join-room', ({ bookingId, userId, userName, peerId }) => {
-    socket.join(bookingId);
-    socketRoomMap[socket.id] = bookingId;
-
-    if (!roomParticipants[bookingId]) {
-      roomParticipants[bookingId] = [];
+  socket.on('join-room', (roomIdOrData, peerIdParam) => {
+    let roomId, peerId, userId, userName;
+    if (typeof roomIdOrData === 'object' && roomIdOrData !== null) {
+      roomId = roomIdOrData.roomId || roomIdOrData.bookingId;
+      peerId = roomIdOrData.peerId;
+      userId = roomIdOrData.userId;
+      userName = roomIdOrData.userName;
+    } else {
+      roomId = roomIdOrData;
+      peerId = peerIdParam;
     }
 
-    // Filter out previous socket for this user if reconnecting
-    roomParticipants[bookingId] = roomParticipants[bookingId].filter(
-      p => p.socketId !== socket.id && p.userId !== userId
-    );
+    if (!roomId || !peerId) {
+      console.warn(`[Signaling] Missing roomId or peerId in join-room:`, roomIdOrData, peerIdParam);
+      return;
+    }
 
-    const existingUsers = [...roomParticipants[bookingId]];
+    socket.join(roomId);
+    socketRoomMap[socket.id] = roomId;
 
+    if (!roomParticipants[roomId]) {
+      roomParticipants[roomId] = [];
+    }
+
+    // Keep participant tracked by socketId (do NOT filter out by userId so two tabs on same user work)
+    roomParticipants[roomId] = roomParticipants[roomId].filter(p => p.socketId !== socket.id);
     const newParticipant = { socketId: socket.id, userId, userName, peerId };
-    roomParticipants[bookingId].push(newParticipant);
+    roomParticipants[roomId].push(newParticipant);
 
-    console.log(`[Signaling] User ${userId} (${userName}) joined room: ${bookingId} (peerId: ${peerId}). Active users: ${roomParticipants[bookingId].length}`);
+    console.log(`[Signaling] Socket ${socket.id} (user: ${userId || 'guest'}, peer: ${peerId}) joined room: ${roomId}`);
+    console.log(`[Signaling] Active participants in room ${roomId}: ${roomParticipants[roomId].length}`);
 
-    // 1. Send the newly joined user the list of existing participants already in the room
-    socket.emit('room-users', { users: existingUsers });
-
-    // 2. Notify other participants in the room that a new user connected
-    socket.to(bookingId).emit('user-connected', newParticipant);
+    // Notify all other users already in the room that a newcomer joined with their peerId
+    socket.to(roomId).emit('user-connected', peerId);
   });
 
   // Relay manual call request / re-negotiation request

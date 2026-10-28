@@ -12,12 +12,21 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 
+const compression = require('compression');
+
 const app = express();
 
-// Core middlewares
+// High-performance gzip response compression
+app.use(compression({
+  threshold: 512, // Compress any response > 512 bytes
+  level: 6
+}));
+
+// Core middlewares with 24-hour CORS preflight caching
 app.use(cors({
   origin: true,
-  credentials: true
+  credentials: true,
+  maxAge: 86400 // Cache OPTIONS preflight checks for 24h to avoid redundant round-trips
 }));
 app.use(express.json());
 

@@ -17,9 +17,10 @@ const KEYS = {
   VERSION: 'cc_storage_v2'
 };
 
-// Initialize localStorage with mock data if not already set
+// Initialize localStorage with mock data only if mock data mode is explicitly enabled
 export const initStorage = () => {
-  // Purge sample activity data if migrating from earlier versions
+  if (import.meta.env.VITE_USE_MOCK_DATA !== 'true') return;
+
   const currentVersion = localStorage.getItem(KEYS.VERSION);
   if (currentVersion !== 'v2') {
     localStorage.setItem(KEYS.AVAILABILITY, JSON.stringify(mockAvailability));
@@ -49,7 +50,7 @@ export const initStorage = () => {
   }
 };
 
-// Run initialization immediately
+// Run initialization
 initStorage();
 
 export const storage = {

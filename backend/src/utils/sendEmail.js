@@ -6,13 +6,16 @@ const env = require('../config/env');
  * Returns null if EMAIL_USER or EMAIL_PASS are not configured.
  */
 const getTransporter = () => {
-  const user = env.EMAIL_USER || process.env.EMAIL_USER;
-  const pass = env.EMAIL_PASS || process.env.EMAIL_PASS;
+  const user = (env.EMAIL_USER || process.env.EMAIL_USER || '').trim();
+  const rawPass = (env.EMAIL_PASS || process.env.EMAIL_PASS || '').trim();
 
-  if (!user || !pass) {
+  if (!user || !rawPass) {
     console.warn('[Email] Skipping email dispatch: EMAIL_USER or EMAIL_PASS not configured in .env');
     return null;
   }
+
+  // Remove whitespace from Google 16-character App Passwords (e.g., "sbpc zgyi vvzc lowu" -> "sbpczgyivvzclowu")
+  const pass = rawPass.replace(/\s+/g, '');
 
   return nodemailer.createTransport({
     service: 'gmail',
@@ -201,54 +204,32 @@ const buildEmailTemplate = ({ recipientRole, recipientName, otherPartyLabel, oth
  * @param {Object} [options] - { sendToStudent: boolean }
  */
 const sendBookingEmail = async (mentor, student, slot, options = { sendToStudent: true }) => {
-  try {
-    const transporter = getTransporter();
-    if (!transporter) return;
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.warn('[Email] Skipping booking emails: Nodemailer transporter is not configured.');
+    return;
+  }
 
-    const emailUser = env.EMAIL_USER || process.env.EMAIL_USER;
+  const emailUser = (env.EMAIL_USER || process.env.EMAIL_USER || '').trim();
+  const tasks = [];
 
-    // 1. Send notification to Mentor
-    if (mentor && mentor.email && mentor.email.trim()) {
-      const mentorMailOptions = {
-        from: `"CampusConnect" <${emailUser}>`,
-        to: mentor.email.trim(),
-        replyTo: emailUser,
-        subject: `New Session Booked: ${student?.name || 'A Student'} booked ${slot?.subject || 'Tutoring'} (${slot?.date})`,
-        text: `Hello ${mentor.name || 'Mentor'},\n\nA student (${student?.name || 'Student'}) has booked a tutoring session with you on CampusConnect.\n\nSession Details:\n- Subject: ${slot?.subject || 'General Mentorship'}\n- Date: ${slot?.date}\n- Time: ${slot?.startTime || slot?.start_time} - ${slot?.endTime || slot?.end_time}\n- Student: ${student?.name || 'Student'}\n\nPlease check your CampusConnect dashboard for session details.`,
-        html: buildEmailTemplate({
-          recipientRole: 'mentor',
-          recipientName: mentor.name || 'Mentor',
-          otherPartyLabel: 'Student Name',
-          otherPartyName: student?.name || 'Junior Student',
-          slot: {
-            date: slot.date,
-            startTime: slot.startTime || slot.start_time,
-            endTime: slot.endTime || slot.end_time,
-            subject: slot.subject
-          }
-        })
-      };
+  console.log(`[Email] Preparing booking emails -> Mentor: "${mentor?.email}", Student: "${student?.email}"`);
 
-      const mentorInfo = await transporter.sendMail(mentorMailOptions);
-      console.log(`[Email] Booking notification sent to mentor: ${mentor.email} (ID: ${mentorInfo.messageId})`);
-    } else {
-      console.warn('[Email] Skipping mentor email: Mentor email address is missing.');
-    }
-
-    // 2. Also send confirmation to Student if requested and email exists
-    if (options.sendToStudent !== false) {
-      if (student && student.email && student.email.trim()) {
-        const studentMailOptions = {
+  // 1. Task: Send notification to Mentor
+  if (mentor && mentor.email && mentor.email.trim()) {
+    tasks.push((async () => {
+      try {
+        const mentorMailOptions = {
           from: `"CampusConnect" <${emailUser}>`,
-          to: student.email.trim(),
+          to: mentor.email.trim(),
           replyTo: emailUser,
-          subject: `Session Confirmed with ${mentor?.name || 'Your Teacher / Mentor'} (${slot?.date})`,
-          text: `Hello ${student.name || 'Student'},\n\nYour tutoring session with ${mentor?.name || 'Mentor'} on CampusConnect has been successfully scheduled.\n\nSession Details:\n- Subject: ${slot?.subject || 'General Mentorship'}\n- Date: ${slot?.date}\n- Time: ${slot?.startTime || slot?.start_time} - ${slot?.endTime || slot?.end_time}\n- Mentor: ${mentor?.name || 'Senior Mentor'}\n\nPlease check your CampusConnect dashboard to join the live video session when it begins.`,
+          subject: `New Session Booked: ${student?.name || 'A Student'} booked ${slot?.subject || 'Tutoring'} (${slot?.date})`,
+          text: `Hello ${mentor.name || 'Mentor'},\n\nA student (${student?.name || 'Student'}) has booked a tutoring session with you on CampusConnect.\n\nSession Details:\n- Subject: ${slot?.subject || 'General Mentorship'}\n- Date: ${slot?.date}\n- Time: ${slot?.startTime || slot?.start_time} - ${slot?.endTime || slot?.end_time}\n- Student: ${student?.name || 'Student'}\n\nPlease check your CampusConnect dashboard for session details.`,
           html: buildEmailTemplate({
-            recipientRole: 'student',
-            recipientName: student.name || 'Student',
-            otherPartyLabel: 'Teacher / Mentor Name',
-            otherPartyName: mentor?.name || 'Senior Mentor',
+            recipientRole: 'mentor',
+            recipientName: mentor.name || 'Mentor',
+            otherPartyLabel: 'Student Name',
+            otherPartyName: student?.name || 'Junior Student',
             slot: {
               date: slot.date,
               startTime: slot.startTime || slot.start_time,
@@ -258,16 +239,57 @@ const sendBookingEmail = async (mentor, student, slot, options = { sendToStudent
           })
         };
 
-        const studentInfo = await transporter.sendMail(studentMailOptions);
-        console.log(`[Email] Booking confirmation sent to student: ${student.email} (ID: ${studentInfo.messageId})`);
-      } else {
-        console.warn('[Email] Skipping student confirmation email: Student email address is missing.');
+        const mentorInfo = await transporter.sendMail(mentorMailOptions);
+        console.log(`[Email] ✅ Notification successfully sent to MENTOR: ${mentor.email} (ID: ${mentorInfo.messageId})`);
+        return { recipient: 'mentor', success: true, id: mentorInfo.messageId };
+      } catch (err) {
+        console.error(`[Email Error] ❌ Failed to send email to MENTOR (${mentor.email}):`, err.message || err);
+        return { recipient: 'mentor', success: false, error: err.message };
       }
-    }
-  } catch (error) {
-    // A failed email must NOT break the booking: catch and log
-    console.error('[Email Error] Failed to send booking notification email:', error.message || error);
+    })());
+  } else {
+    console.warn('[Email] ⚠️ Skipping mentor email: Mentor email address is missing or empty.');
   }
+
+  // 2. Task: Send confirmation to Student
+  if (options.sendToStudent !== false) {
+    if (student && student.email && student.email.trim()) {
+      tasks.push((async () => {
+        try {
+          const studentMailOptions = {
+            from: `"CampusConnect" <${emailUser}>`,
+            to: student.email.trim(),
+            replyTo: emailUser,
+            subject: `Session Confirmed with ${mentor?.name || 'Your Teacher / Mentor'} (${slot?.date})`,
+            text: `Hello ${student.name || 'Student'},\n\nYour tutoring session with ${mentor?.name || 'Mentor'} on CampusConnect has been successfully scheduled.\n\nSession Details:\n- Subject: ${slot?.subject || 'General Mentorship'}\n- Date: ${slot?.date}\n- Time: ${slot?.startTime || slot?.start_time} - ${slot?.endTime || slot?.end_time}\n- Mentor: ${mentor?.name || 'Senior Mentor'}\n\nPlease check your CampusConnect dashboard to join the live video session when it begins.`,
+            html: buildEmailTemplate({
+              recipientRole: 'student',
+              recipientName: student.name || 'Student',
+              otherPartyLabel: 'Teacher / Mentor Name',
+              otherPartyName: mentor?.name || 'Senior Mentor',
+              slot: {
+                date: slot.date,
+                startTime: slot.startTime || slot.start_time,
+                endTime: slot.endTime || slot.end_time,
+                subject: slot.subject
+              }
+            })
+          };
+
+          const studentInfo = await transporter.sendMail(studentMailOptions);
+          console.log(`[Email] ✅ Confirmation successfully sent to STUDENT: ${student.email} (ID: ${studentInfo.messageId})`);
+          return { recipient: 'student', success: true, id: studentInfo.messageId };
+        } catch (err) {
+          console.error(`[Email Error] ❌ Failed to send email to STUDENT (${student.email}):`, err.message || err);
+          return { recipient: 'student', success: false, error: err.message };
+        }
+      })());
+    } else {
+      console.warn('[Email] ⚠️ Skipping student confirmation email: Student email address is missing or empty.');
+    }
+  }
+
+  return await Promise.allSettled(tasks);
 };
 
 /**

@@ -248,22 +248,52 @@ const VideoCall = () => {
     }
   }, [activeTab, chatMessages]);
 
-  // Keep video & audio elements in sync whenever streams change
-  useEffect(() => { attachStream(localVideoRef.current, localStream); }, [localStream, attachStream]);
-  useEffect(() => { attachStream(remoteVideoRef.current, remoteStream); }, [remoteStream, attachStream]);
-  useEffect(() => { attachStream(screenVideoRef.current, screenStream); }, [screenStream, attachStream]);
+  // Keep video & audio elements in sync whenever streams or view mode change
+  useEffect(() => {
+    if (localVideoRef.current) {
+      if (localVideoRef.current.srcObject !== (localStream || null)) {
+        localVideoRef.current.srcObject = localStream || null;
+      }
+      if (localStream) {
+        localVideoRef.current.play().catch(e => console.warn('[Video] Local play warning:', e));
+      }
+    }
+  }, [localStream, viewMode]);
+
+  useEffect(() => {
+    if (remoteVideoRef.current) {
+      if (remoteVideoRef.current.srcObject !== (remoteStream || null)) {
+        remoteVideoRef.current.srcObject = remoteStream || null;
+      }
+      if (remoteStream) {
+        remoteVideoRef.current.play().catch(e => console.warn('[Video] Remote play warning:', e));
+      }
+    }
+  }, [remoteStream, viewMode]);
+
+  useEffect(() => {
+    if (screenVideoRef.current) {
+      if (screenVideoRef.current.srcObject !== (screenStream || null)) {
+        screenVideoRef.current.srcObject = screenStream || null;
+      }
+      if (screenStream) {
+        screenVideoRef.current.play().catch(e => console.warn('[Video] Screen play warning:', e));
+      }
+    }
+  }, [screenStream, viewMode]);
+
   useEffect(() => {
     if (remoteAudioRef.current && remoteStream) {
       if (remoteAudioRef.current.srcObject !== remoteStream) {
         remoteAudioRef.current.srcObject = remoteStream;
       }
       remoteAudioRef.current.play().catch(e => {
-        console.warn('[Audio] Autoplay policy prevented immediate playback, will resume on user gesture:', e);
+        console.warn('[Audio] Autoplay warning:', e);
       });
     }
   }, [remoteStream]);
 
-  // 1. Initialize Local Camera/Microphone Stream
+  // 1. Initialize Local Camera/Microphone Stream (Step a: getUserMedia first)
   const initializeLocalStream = async () => {
     const sessionId = ++initSessionIdRef.current;
     setCameraPermissionError(null);
@@ -277,6 +307,8 @@ const VideoCall = () => {
     }
 
     try {
+      console.log(`[WebRTC] Room ID (Booking ID): "${bookingId}"`);
+      console.log('[WebRTC] Requesting local camera and microphone (getUserMedia)...');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
@@ -291,9 +323,9 @@ const VideoCall = () => {
         }
       });
 
-      // If component was unmounted or this init was superseded (e.g. React StrictMode mount 1 cleanup):
+      // StrictMode unmount check
       if (isUnmountedRef.current || sessionId !== initSessionIdRef.current) {
-        console.log('[WebRTC] Stream acquired after unmount/superseded. Immediately stopping tracks.');
+        console.log('[WebRTC] Component unmounted during getUserMedia. Stopping tracks.');
         stream.getTracks().forEach(t => t.stop());
         return;
       }
@@ -303,13 +335,13 @@ const VideoCall = () => {
       setLocalStream(stream);
       setCameraActive(true);
       setMicActive(true);
-      attachStream(localVideoRef.current, stream);
-      initializeWebRTC(stream);
+
+      // Now continue to WebRTC setup with stream ready
+      setupWebRTCAndSignaling(stream);
     } catch (err) {
       console.error('[WebRTC] Camera/mic access failed:', err);
       if (isUnmountedRef.current || sessionId !== initSessionIdRef.current) return;
 
-      // Show a human-readable error banner
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setCameraPermissionError('Camera/microphone permission was denied. Click the camera icon in the browser address bar and allow access, then click Retry.');
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
@@ -320,7 +352,7 @@ const VideoCall = () => {
         setCameraPermissionError(`Could not start camera: ${err.message}`);
       }
 
-      // Audio-only graceful fallback so WebRTC can still connect
+      // Audio-only graceful fallback
       try {
         const audioOnly = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         if (isUnmountedRef.current || sessionId !== initSessionIdRef.current) {
@@ -331,21 +363,22 @@ const VideoCall = () => {
         localStreamRef.current = audioOnly;
         setLocalStream(audioOnly);
         setCameraActive(false);
-        initializeWebRTC(audioOnly);
+        setupWebRTCAndSignaling(audioOnly);
       } catch (audioErr) {
         console.error('[WebRTC] Audio-only fallback failed too:', audioErr);
-        initializeWebRTC(new MediaStream());
+        const emptyStream = new MediaStream();
+        localStreamRef.current = emptyStream;
+        setLocalStream(emptyStream);
+        setupWebRTCAndSignaling(emptyStream);
       }
     }
   };
 
-
-  // 2. Initialize WebRTC & Socket.io Signaling
-  const initializeWebRTC = (stream) => {
+  // 2. Setup WebRTC & Socket.io Signaling with strict ordering
+  const setupWebRTCAndSignaling = (stream) => {
     const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
     const serverUrl = apiBase.replace(/\/api\/?$/, '');
 
-    // Determine host and port dynamically (supports localhost and LAN IP)
     let targetHost = window.location.hostname;
     let targetPort = 5001;
     let isSecure = window.location.protocol === 'https:';
@@ -353,7 +386,6 @@ const VideoCall = () => {
     try {
       const urlObj = new URL(serverUrl);
       targetHost = urlObj.hostname || window.location.hostname;
-      // If serverUrl is localhost/127.0.0.1 but the browser was opened with a LAN IP/domain, use the browser's hostname
       if ((targetHost === 'localhost' || targetHost === '127.0.0.1') && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
         targetHost = window.location.hostname;
       }
@@ -375,7 +407,7 @@ const VideoCall = () => {
     });
     socketRef.current = socket;
 
-    console.log(`[WebRTC] Initializing PeerJS with host=${targetHost}, port=${targetPort}, secure=${isSecure}`);
+    console.log(`[WebRTC] Initializing PeerJS: host=${targetHost}, port=${targetPort}, secure=${isSecure}`);
     const peer = new Peer(undefined, {
       host: targetHost,
       port: targetPort,
@@ -394,164 +426,100 @@ const VideoCall = () => {
     });
     peerRef.current = peer;
 
-    let fallbackCallTimeout = null;
+    // Helper to safely bind incoming stream to state and video element
+    const bindRemoteStream = (remoteMediaStream) => {
+      if (!remoteMediaStream) return;
+      console.log('[WebRTC] 5. Stream received from peer! Tracks:', remoteMediaStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+      registerStreamTracks(remoteMediaStream);
+      remoteStreamRef.current = remoteMediaStream;
+      setRemoteStream(remoteMediaStream);
+      setConnectionState('connected');
 
-    // Helper to safely bind stream handlers to any call (incoming or outgoing)
-    const setupCallHandlers = (call, callerRoleName) => {
-      currentCallRef.current = call;
-
-      const handleRemoteStream = (remoteMediaStream) => {
-        if (!remoteMediaStream) return;
-        console.log('[WebRTC] Remote MediaStream attached! Tracks:', remoteMediaStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
-        registerStreamTracks(remoteMediaStream);
-        remoteStreamRef.current = remoteMediaStream;
-        setRemoteStream(remoteMediaStream);
-        setConnectionState('connected');
-
-        // Route to dedicated audio element for crystal clear voice playback
-        if (remoteAudioRef.current) {
-          remoteAudioRef.current.srcObject = remoteMediaStream;
-          remoteAudioRef.current.play().catch(e => console.warn('[Audio] Autoplay warning:', e));
-        }
-
-        // Attach to remote video element if mounted
-        if (remoteVideoRef.current) {
-          attachStream(remoteVideoRef.current, remoteMediaStream);
-        }
-      };
-
-      call.on('stream', handleRemoteStream);
-
-      // Also listen on native RTCPeerConnection track event (non-destructive)
-      if (call.peerConnection) {
-        call.peerConnection.addEventListener('track', (event) => {
-          console.log('[WebRTC] Native track event received:', event.track.kind);
-          if (event.streams && event.streams[0]) {
-            handleRemoteStream(event.streams[0]);
-          } else {
-            const currentRemote = remoteStreamRef.current || new MediaStream();
-            if (!currentRemote.getTracks().some(t => t.id === event.track.id)) {
-              currentRemote.addTrack(event.track);
-              handleRemoteStream(currentRemote);
-            }
-          }
-        });
-
-        call.peerConnection.addEventListener('iceconnectionstatechange', () => {
-          console.log('[WebRTC] ICE Connection State:', call.peerConnection.iceConnectionState);
-          if (['connected', 'completed'].includes(call.peerConnection.iceConnectionState)) {
-            setConnectionState('connected');
-          }
-        });
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = remoteMediaStream;
+        remoteAudioRef.current.play().catch(e => console.warn('[Audio] Autoplay warning:', e));
       }
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = remoteMediaStream;
+        remoteVideoRef.current.play().catch(e => console.warn('[Video] Play warning:', e));
+      }
+    };
 
-      call.on('close', () => {
-        console.log('[WebRTC] Call ended by peer');
-        setConnectionState('connecting');
+    // Step b: Register peer.on("call") to answer with my stream BEFORE joining the room
+    peer.on('call', (incomingCall) => {
+      console.log('[WebRTC] 4. peer.on("call"): Incoming call received from remote peerId:', incomingCall.peer);
+      currentCallRef.current = incomingCall;
+      activeRemotePeerIdRef.current = incomingCall.peer;
+
+      const currentStream = localStreamRef.current || stream;
+      incomingCall.answer(currentStream);
+
+      incomingCall.on('stream', (incomingRemoteStream) => {
+        bindRemoteStream(incomingRemoteStream);
+      });
+
+      incomingCall.on('close', () => {
+        console.log('[WebRTC] Incoming call closed');
         setRemoteStream(null);
         remoteStreamRef.current = null;
         activeRemotePeerIdRef.current = null;
+        setConnectionState('connecting');
       });
 
-      call.on('error', (err) => console.error('[PeerJS] Call error:', err));
-    };
+      incomingCall.on('error', (err) => {
+        console.error('[PeerJS] Incoming call error:', err);
+      });
+    });
 
-    // Helper to dial a remote peer safely
-    const callRemotePeer = (targetPeerId, targetName) => {
-      if (!targetPeerId || !peer || peer.destroyed) return;
-      if (activeRemotePeerIdRef.current === targetPeerId && currentCallRef.current?.open) {
-        console.log('[WebRTC] Already in open call with', targetPeerId);
-        return;
-      }
+    peer.on('error', (err) => {
+      console.error('[PeerJS] Peer error:', err);
+    });
 
-      activeRemotePeerIdRef.current = targetPeerId;
-      if (targetName) setPeerName(targetName);
+    // Step c: Register socket.on("user-connected") so the user already in the room calls newcomer with peer.call(remotePeerId, stream)
+    socket.on('user-connected', (data) => {
+      const remotePeerId = typeof data === 'object' && data !== null ? data.peerId : data;
+      console.log('[WebRTC] 3. socket.on("user-connected"): Newcomer peerId =', remotePeerId);
 
-      const currentStream = localStreamRef.current || stream || new MediaStream();
-      console.log(`[WebRTC] Dialing peer ${targetName || ''} (${targetPeerId}) with stream tracks:`, currentStream?.getTracks().length);
+      if (!remotePeerId || remotePeerId === peer.id) return;
+      activeRemotePeerIdRef.current = remotePeerId;
 
-      try {
-        const outgoingCall = peer.call(targetPeerId, currentStream);
-        setupCallHandlers(outgoingCall, targetName);
-      } catch (err) {
-        console.error('[WebRTC] Call initiation error:', err);
-      }
-    };
+      const currentStream = localStreamRef.current || stream;
+      console.log(`[WebRTC] Calling newcomer ${remotePeerId} with my local stream...`);
 
-    peer.on('open', (peerId) => {
-      console.log('[PeerJS] Local Peer ID registered:', peerId);
+      const outgoingCall = peer.call(remotePeerId, currentStream);
+      currentCallRef.current = outgoingCall;
+
+      outgoingCall.on('stream', (incomingRemoteStream) => {
+        bindRemoteStream(incomingRemoteStream);
+      });
+
+      outgoingCall.on('close', () => {
+        console.log('[WebRTC] Outgoing call closed');
+        setRemoteStream(null);
+        remoteStreamRef.current = null;
+        activeRemotePeerIdRef.current = null;
+        setConnectionState('connecting');
+      });
+
+      outgoingCall.on('error', (err) => {
+        console.error('[PeerJS] Outgoing call error:', err);
+      });
+    });
+
+    // Step d: Only after peer.on("open") fires, emit "join-room" with roomId and my peer ID
+    peer.on('open', (localPeerId) => {
+      console.log('[WebRTC] 1. peer.on("open"): Local peer ID =', localPeerId);
+      console.log(`[WebRTC] 2. Emitting "join-room" with roomId = "${bookingId}", peerId = "${localPeerId}"`);
       socket.emit('join-room', {
+        roomId: bookingId,
         bookingId,
+        peerId: localPeerId,
         userId: user?.id || `user_${Date.now()}`,
-        userName: user?.name || 'Participant',
-        peerId
+        userName: user?.name || 'Participant'
       });
     });
 
-    peer.on('error', (err) => console.error('[PeerJS] Peer error:', err));
-
-    // Handle Incoming Call from remote peer
-    peer.on('call', (incomingCall) => {
-      console.log('[PeerJS] Incoming call received from:', incomingCall.peer);
-      clearTimeout(fallbackCallTimeout);
-      activeRemotePeerIdRef.current = incomingCall.peer;
-      const currentStream = localStreamRef.current || stream || new MediaStream();
-      incomingCall.answer(currentStream);
-      setupCallHandlers(incomingCall);
-    });
-
-    // Polite peer pattern: lexicographical ID comparison determines who calls
-    const coordinateCall = (remotePeerId, remoteUserName) => {
-      if (!remotePeerId) return;
-      if (remoteUserName) setPeerName(remoteUserName);
-
-      const myPeerId = peer.id;
-      if (!myPeerId) {
-        peer.once('open', () => coordinateCall(remotePeerId, remoteUserName));
-        return;
-      }
-
-      const isCaller = myPeerId > remotePeerId;
-      console.log(`[Signaling] Call coordination: myPeerId=${myPeerId}, remotePeerId=${remotePeerId}, isCaller=${isCaller}`);
-
-      if (isCaller) {
-        callRemotePeer(remotePeerId, remoteUserName);
-      } else {
-        clearTimeout(fallbackCallTimeout);
-        fallbackCallTimeout = setTimeout(() => {
-          if (!currentCallRef.current || !currentCallRef.current.open) {
-            console.log('[WebRTC] Fallback timeout: dialing remote peer as backup');
-            callRemotePeer(remotePeerId, remoteUserName);
-          }
-        }, 4000);
-      }
-    };
-
-    // 1. Existing users already waiting in room when we connect
-    socket.on('room-users', ({ users }) => {
-      console.log('[Signaling] Existing room participants:', users);
-      const otherUser = users.find(u => u.peerId && u.socketId !== socket.id);
-      if (otherUser) {
-        coordinateCall(otherUser.peerId, otherUser.userName);
-      }
-    });
-
-    // 2. New user joins room while we are already waiting
-    socket.on('user-connected', ({ userId, userName, peerId }) => {
-      console.log(`[Signaling] Peer joined room: ${userName} (${peerId})`);
-      if (peerId) {
-        coordinateCall(peerId, userName);
-      }
-    });
-
-    // 3. Manual re-sync request
-    socket.on('call-requested', ({ fromPeerId, toPeerId }) => {
-      if (toPeerId === peer.id) {
-        console.log('[Signaling] Re-negotiating call from:', fromPeerId);
-        callRemotePeer(fromPeerId);
-      }
-    });
-
+    // In-call UI and media relay listeners
     socket.on('peer-media-state-change', ({ mediaType, enabled }) => {
       setPeerMediaState(prev => ({ ...prev, [mediaType]: enabled }));
     });
@@ -577,7 +545,7 @@ const VideoCall = () => {
     });
 
     socket.on('user-disconnected', () => {
-      console.log('[Signaling] Remote peer disconnected');
+      console.log('[Signaling] Remote peer disconnected from room');
       setConnectionState('connecting');
       setRemoteStream(null);
       remoteStreamRef.current = null;
@@ -1058,25 +1026,24 @@ const VideoCall = () => {
 
                 {/* PiP Local Camera on Right Profile Side */}
                 <div className="absolute bottom-4 right-4 w-40 sm:w-48 aspect-video rounded-2xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-slate-900 z-10">
-                  {localStream && cameraActive ? (
-                    <video
-                      ref={localVideoCallback}
-                      autoPlay
-                      muted
-                      playsInline
-                      className={`w-full h-full object-cover rounded-2xl ${isMirrored ? 'transform -scale-x-100' : ''}`}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-slate-800 text-xs text-slate-400 font-bold">
-                      {user?.name?.charAt(0)}
+                  <video
+                    ref={localVideoCallback}
+                    autoPlay
+                    muted
+                    playsInline
+                    className={`w-full h-full object-cover rounded-2xl ${isMirrored ? 'transform -scale-x-100' : ''}`}
+                  />
+                  {(!localStream || !cameraActive) && (
+                    <div className="absolute inset-0 bg-slate-950/90 flex items-center justify-center text-xs text-slate-400 font-bold z-10">
+                      {cameraActive ? (user?.name?.charAt(0) || 'Y') : 'Camera Off'}
                     </div>
                   )}
-                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-950/80 text-[10px] font-bold text-white">
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-950/80 text-[10px] font-bold text-white z-20">
                     You
                   </span>
                   <button
                     onClick={() => setIsMirrored(prev => !prev)}
-                    className="absolute top-2 right-2 p-1 rounded-lg bg-slate-950/80 hover:bg-slate-850 text-slate-300 border border-slate-700/60"
+                    className="absolute top-2 right-2 p-1 rounded-lg bg-slate-950/80 hover:bg-slate-850 text-slate-300 border border-slate-700/60 z-20"
                     title="Flip camera"
                   >
                     <FlipHorizontal className="w-3 h-3 text-brand-400" />
@@ -1087,17 +1054,16 @@ const VideoCall = () => {
               /* Balanced Grid View: Remote Peer on Left, Local User Camera on Right Profile Side */
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
                 
-                {/* Tile 1: Remote Peer (Left side) */}
+                {/* Tile 1: Remote Peer (Left side) - Video ALWAYS rendered */}
                 <div className="relative glass-panel rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center min-h-[320px]">
-                  {remoteStream ? (
-                    <video
-                      ref={remoteVideoCallback}
-                      autoPlay
-                      playsInline
-                      className="w-full h-full object-cover rounded-3xl"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-6 bg-slate-950">
+                  <video
+                    ref={remoteVideoCallback}
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-cover rounded-3xl"
+                  />
+                  {!remoteStream && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center p-6 bg-slate-950/95 z-10 backdrop-blur-sm">
                       <img
                         src={isMentor ? "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150" : "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150"}
                         alt={peerName}
@@ -1105,37 +1071,36 @@ const VideoCall = () => {
                       />
                       <div>
                         <h4 className="text-base font-bold text-white">{peerName}</h4>
-                        <p className="text-xs text-amber-400 mt-1 animate-pulse">Waiting to join…</p>
+                        <p className="text-xs text-amber-400 mt-1 animate-pulse">Waiting for the other person to join…</p>
                       </div>
                     </div>
                   )}
 
                   {remoteStream && !peerMediaState.camera && (
-                    <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-2 text-slate-400">
+                    <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-2 text-slate-400 z-10">
                       <VideoOff className="w-8 h-8 text-slate-600" />
                       <span className="text-xs font-semibold">{peerName} turned off camera</span>
                     </div>
                   )}
 
-                  <div className="absolute bottom-4 left-4 px-3 py-1 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-800 text-xs font-bold text-white flex items-center gap-2">
+                  <div className="absolute bottom-4 left-4 px-3 py-1 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-800 text-xs font-bold text-white flex items-center gap-2 z-20">
                     <span>{peerName}</span>
                     <span className="text-[10px] text-amber-400 font-mono">({isMentor ? 'Mentee' : 'Mentor'})</span>
                     {!peerMediaState.mic && <MicOff className="w-3.5 h-3.5 text-rose-400 ml-1" />}
                   </div>
                 </div>
 
-                {/* Tile 2: Local Participant Camera (Right profile side) */}
+                {/* Tile 2: Local Participant Camera (Right profile side) - Video ALWAYS rendered */}
                 <div className="relative glass-panel rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center min-h-[320px]">
-                  {localStream && cameraActive ? (
-                    <video
-                      ref={localVideoCallback}
-                      autoPlay
-                      muted
-                      playsInline
-                      className={`w-full h-full object-cover rounded-3xl ${isMirrored ? 'transform -scale-x-100' : ''}`}
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-3">
+                  <video
+                    ref={localVideoCallback}
+                    autoPlay
+                    muted
+                    playsInline
+                    className={`w-full h-full object-cover rounded-3xl ${isMirrored ? 'transform -scale-x-100' : ''}`}
+                  />
+                  {(!localStream || !cameraActive) && (
+                    <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-3 z-10">
                       <div className="w-20 h-20 rounded-full bg-brand-500/20 border-2 border-brand-500 flex items-center justify-center text-xl font-extrabold text-brand-400">
                         {user?.name?.charAt(0) || 'Y'}
                       </div>
@@ -1143,21 +1108,14 @@ const VideoCall = () => {
                     </div>
                   )}
 
-                  {!cameraActive && (
-                    <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-2 text-slate-400">
-                      <VideoOff className="w-8 h-8 text-slate-600" />
-                      <span className="text-xs font-semibold">Your Camera is Off</span>
-                    </div>
-                  )}
-
-                  <div className="absolute bottom-4 left-4 px-3 py-1 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-800 text-xs font-bold text-white flex items-center gap-2">
+                  <div className="absolute bottom-4 left-4 px-3 py-1 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-800 text-xs font-bold text-white flex items-center gap-2 z-20">
                     <span>{user?.name} (You)</span>
                     <span className="text-[10px] text-brand-400 font-mono">({user?.role})</span>
                     {!micActive && <MicOff className="w-3.5 h-3.5 text-rose-400 ml-1" />}
                   </div>
 
                   {/* Flip / Mirror Button */}
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-4 right-4 z-20">
                     <button
                       onClick={() => setIsMirrored(prev => !prev)}
                       className="px-2.5 py-1 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 text-xs flex items-center gap-1.5 backdrop-blur-md transition-all shadow-sm"
@@ -1174,16 +1132,15 @@ const VideoCall = () => {
               /* Stage View Default: Main Featured Remote + PiP Local */
               <div className="relative flex-1 glass-panel rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center min-h-[420px]">
 
-                {/* Main Featured Remote Stream */}
-                {remoteStream ? (
-                  <video
-                    ref={remoteVideoCallback}
-                    autoPlay
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 space-y-4">
+                {/* Main Featured Remote Stream - Video ALWAYS rendered */}
+                <video
+                  ref={remoteVideoCallback}
+                  autoPlay
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                {!remoteStream && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 space-y-4 bg-slate-950/95 z-10 backdrop-blur-sm">
                     <div className="relative">
                       <img
                         src={isMentor ? "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200" : "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200"}
@@ -1197,54 +1154,47 @@ const VideoCall = () => {
                       <p className="text-xs text-slate-400 mt-1">
                         {isMentor ? 'Student Mentee' : 'Senior Peer Mentor'} • {booking?.department || 'Academic Peer'}
                       </p>
-                      <p className="text-xs text-amber-400 mt-2 animate-pulse">Waiting to join…</p>
+                      <p className="text-xs text-amber-400 mt-2 animate-pulse">Waiting for the other person to join…</p>
                     </div>
                   </div>
                 )}
 
                 {remoteStream && !peerMediaState.camera && (
-                  <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-2 text-slate-400">
+                  <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-2 text-slate-400 z-10">
                     <VideoOff className="w-10 h-10 text-slate-600" />
                     <p className="text-sm font-semibold">{peerName} paused video</p>
                   </div>
                 )}
 
                 {remoteStream && !peerMediaState.mic && (
-                  <div className="absolute top-4 left-4 px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center gap-1.5">
+                  <div className="absolute top-4 left-4 px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center gap-1.5 z-20">
                     <MicOff className="w-3.5 h-3.5" />
                     {peerName} Muted
                   </div>
                 )}
 
-                {/* PiP Local Video Thumbnail (Right Profile Side) */}
-                <div className="absolute bottom-4 right-4 w-40 sm:w-48 aspect-video rounded-2xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-slate-900">
-                  {localStream && cameraActive ? (
-                    <video
-                      ref={localVideoCallback}
-                      autoPlay
-                      muted
-                      playsInline
-                      className={`w-full h-full object-cover rounded-2xl ${isMirrored ? 'transform -scale-x-100' : ''}`}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-slate-800 text-xs text-slate-400 font-bold">
-                      {user?.name?.charAt(0)}
+                {/* PiP Local Video Thumbnail (Right Profile Side) - Video ALWAYS rendered */}
+                <div className="absolute bottom-4 right-4 w-40 sm:w-48 aspect-video rounded-2xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-slate-900 z-10">
+                  <video
+                    ref={localVideoCallback}
+                    autoPlay
+                    muted
+                    playsInline
+                    className={`w-full h-full object-cover rounded-2xl ${isMirrored ? 'transform -scale-x-100' : ''}`}
+                  />
+                  {(!localStream || !cameraActive) && (
+                    <div className="absolute inset-0 bg-slate-950/90 flex items-center justify-center text-xs text-slate-400 font-bold z-10">
+                      {cameraActive ? (user?.name?.charAt(0) || 'Y') : 'Camera Off'}
                     </div>
                   )}
 
-                  {!cameraActive && (
-                    <div className="absolute inset-0 bg-slate-950/90 flex items-center justify-center text-[10px] text-slate-400">
-                      Camera Off
-                    </div>
-                  )}
-
-                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-950/80 text-[10px] font-bold text-white">
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-950/80 text-[10px] font-bold text-white z-20">
                     You
                   </span>
 
                   <button
                     onClick={() => setIsMirrored(prev => !prev)}
-                    className="absolute top-2 right-2 p-1 rounded-lg bg-slate-950/80 hover:bg-slate-800 text-slate-300 border border-slate-700/60"
+                    className="absolute top-2 right-2 p-1 rounded-lg bg-slate-950/80 hover:bg-slate-850 text-slate-300 border border-slate-700/60 z-20"
                     title="Flip camera"
                   >
                     <FlipHorizontal className="w-3 h-3 text-brand-400" />

@@ -7,12 +7,12 @@ import UpcomingSession from '../components/dashboard/UpcomingSession';
 import Button from '../components/common/Button';
 import { AuthContext } from '../context/AuthContext';
 import { AppContext } from '../context/AppContext';
-import { Calendar, Clock, Video, CheckCircle2, XCircle, Award, Sparkles } from 'lucide-react';
+import { Calendar, Clock, Video, CheckCircle2, XCircle, Award, Sparkles, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Bookings = () => {
   const { user } = useContext(AuthContext);
-  const { bookings, cancelBooking, completeBooking, loading, error } = useContext(AppContext);
+  const { bookings, cancelBooking, completeBooking, deleteBooking, loading, error } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('upcoming');
 
   const filteredBookings = bookings.filter(b => {
@@ -37,6 +37,16 @@ const Bookings = () => {
       await completeBooking(bookingId);
     } catch (err) {
       alert(err.message || 'Update failed.');
+    }
+  };
+
+  const handleDeleteBooking = async (bookingId) => {
+    if (window.confirm('Are you sure you want to delete this session?')) {
+      try {
+        await deleteBooking(bookingId);
+      } catch (err) {
+        alert(err.message || 'Failed to delete session.');
+      }
     }
   };
 
@@ -154,7 +164,7 @@ const Bookings = () => {
                     </div>
 
                     {/* Action buttons */}
-                    <div className="flex gap-2 self-stretch sm:self-center">
+                    <div className="flex items-center gap-2 self-stretch sm:self-center flex-wrap sm:flex-nowrap">
                       {isUpcoming && (
                         <>
                           <Link to={`/${role}/video/${b.id}`} className="flex-1 sm:flex-initial">
@@ -191,6 +201,14 @@ const Bookings = () => {
                           Reviewed or ready to review on Dashboard
                         </span>
                       )}
+
+                      <button
+                        onClick={() => handleDeleteBooking(b.id)}
+                        className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                        title="Delete session"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
 
                   </div>
