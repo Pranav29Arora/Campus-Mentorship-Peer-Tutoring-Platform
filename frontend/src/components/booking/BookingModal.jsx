@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
@@ -8,6 +9,7 @@ import ErrorMessage from '../common/ErrorMessage';
 import { Calendar, User, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 
 const BookingModal = ({ mentor, isOpen, onClose }) => {
+  const navigate = useNavigate();
   const { fetchAvailability, createBooking } = useContext(AppContext);
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -89,7 +91,14 @@ const BookingModal = ({ mentor, isOpen, onClose }) => {
               <span className="text-slate-700">Time: <strong className="text-slate-900">{successBooking.startTime} - {successBooking.endTime}</strong></span>
             </div>
           </div>
-          <Button variant="primary" onClick={onClose} className="px-8 font-bold">
+          <Button 
+            variant="primary" 
+            onClick={() => {
+              onClose();
+              navigate('/student/dashboard');
+            }} 
+            className="px-8 font-bold"
+          >
             Close & Go to Dashboard
           </Button>
         </div>

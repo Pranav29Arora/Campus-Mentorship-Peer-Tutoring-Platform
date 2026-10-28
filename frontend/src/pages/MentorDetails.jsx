@@ -53,7 +53,7 @@ const MentorDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 transition-colors duration-300">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <Loader message="Loading mentor profile details..." />
@@ -65,7 +65,7 @@ const MentorDetails = () => {
 
   if (error || !mentor) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50">
+      <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 transition-colors duration-300">
         <Navbar />
         <div className="flex-1 flex items-center justify-center max-w-md mx-auto px-4">
           <ErrorMessage message={error} onRetry={loadMentorProfile} />
@@ -76,7 +76,7 @@ const MentorDetails = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 transition-colors duration-300">
       <Navbar />
 
       <div className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 text-left">

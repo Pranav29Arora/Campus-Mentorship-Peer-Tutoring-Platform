@@ -34,7 +34,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 selection:bg-brand-500 selection:text-white transition-colors duration-300">
       <Navbar />
 
       {/* Hero Section */}
@@ -50,25 +50,25 @@ const Home = () => {
             <div className="lg:col-span-7 text-center lg:text-left space-y-6">
               
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-brand-200 shadow-sm text-brand-700 text-xs font-bold tracking-wide">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-800/90 border border-brand-200 dark:border-brand-800/60 shadow-sm text-brand-700 dark:text-brand-300 text-xs font-bold tracking-wide">
                 <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+                <Sparkles className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" />
                 <span>Next-Gen Campus Mentorship & Viva Prep</span>
               </div>
               
               {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-sans text-slate-900 tracking-tight leading-[1.12]">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-sans text-slate-900 dark:text-white tracking-tight leading-[1.12]">
                 Learn From Experience. <br />
-                <span className="bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 dark:from-brand-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
                   Grow Together.
                 </span>
               </h1>
 
               {/* Subtitle */}
-              <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
+              <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
                 Connect 1-on-1 with high-achieving seniors for personalized academic tutoring, viva exam preparation, assignment reviews, and real placement interview tips.
               </p>
 
@@ -80,7 +80,7 @@ const Home = () => {
                   </Button>
                 </Link>
                 <Link to="/register?role=mentor" className="w-full sm:w-auto">
-                  <Button variant="outline" size="lg" className="w-full sm:w-48 bg-white hover:bg-slate-50">
+                  <Button variant="outline" size="lg" className="w-full sm:w-48 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700">
                     Become a Mentor
                   </Button>
                 </Link>

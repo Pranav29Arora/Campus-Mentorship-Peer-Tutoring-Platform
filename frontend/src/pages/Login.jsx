@@ -50,14 +50,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 transition-colors duration-300">
       <Navbar />
 
       <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         {/* Ambient glows */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-to-tr from-brand-100/40 via-indigo-100/30 to-purple-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="max-w-4xl w-full bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-12 relative z-10">
+        <div className="max-w-4xl w-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-12 relative z-10">
           
           {/* Left Visual / Promo Column (Hidden on small mobile) */}
           <div className="hidden md:flex md:col-span-5 bg-gradient-to-br from-brand-600 via-indigo-600 to-indigo-800 p-8 text-white flex-col justify-between relative overflow-hidden">

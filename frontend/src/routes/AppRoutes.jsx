@@ -160,6 +160,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/admin/profile"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Navigate to="/admin/dashboard" replace />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Fallback */}
       <Route path="/404" element={<NotFound />} />

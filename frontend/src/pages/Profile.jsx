@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import Button from '../components/common/Button';
@@ -18,14 +18,21 @@ const Profile = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  useState(() => {
-    // If user is mentor, load bio and subjects from storage profile
-    if (user && user.role === 'mentor' && user.mentorId) {
-      const mentors = JSON.parse(localStorage.getItem('cc_mentors') || '[]');
-      const mProfile = mentors.find(m => m.id === user.mentorId);
-      if (mProfile) {
-        setBio(mProfile.bio || '');
-        setSelectedSubjects(mProfile.subjects || []);
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setEmail(user.email || '');
+      setDepartment(user.department || 'Computer Science');
+      setYear(user.year ? user.year.toString() : '1');
+
+      // If user is mentor, load bio and subjects from storage profile
+      if (user.role === 'mentor' && user.mentorId) {
+        const mentors = JSON.parse(localStorage.getItem('cc_mentors') || '[]');
+        const mProfile = mentors.find(m => m.id === user.mentorId);
+        if (mProfile) {
+          setBio(mProfile.bio || '');
+          setSelectedSubjects(mProfile.subjects || []);
+        }
       }
     }
   }, [user]);
@@ -79,18 +86,18 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 transition-colors duration-300">
       <Navbar />
 
       <div className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 text-left">
         
         {/* Header */}
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 text-xs font-bold mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" />
             Account Settings
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans flex items-center gap-3">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans flex items-center gap-3">
             Edit Profile Details
           </h1>
           <p className="text-sm text-slate-500 mt-1">

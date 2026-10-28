@@ -1,5 +1,5 @@
-import React, { useContext, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useContext, useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
@@ -10,12 +10,15 @@ import { DEPARTMENTS, SUBJECTS } from '../components/mentors/MentorFilters';
 
 const Register = () => {
   const { register } = useContext(AuthContext);
+  const [searchParams] = useSearchParams();
+  const initialRole = searchParams.get('role') === 'mentor' ? 'mentor' : 'student';
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [rollNumber, setRollNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('student');
+  const [role, setRole] = useState(initialRole);
   const [department, setDepartment] = useState('Computer Science');
   const [year, setYear] = useState('1');
   const [bio, setBio] = useState('');
@@ -24,6 +27,13 @@ const Register = () => {
   const [validationError, setValidationError] = useState('');
   
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const queryRole = searchParams.get('role');
+    if (queryRole === 'mentor' || queryRole === 'student') {
+      setRole(queryRole);
+    }
+  }, [searchParams]);
 
   const handleSubjectToggle = (sub) => {
     setSelectedSubjects(prev => 
@@ -81,14 +91,14 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 transition-colors duration-300">
       <Navbar />
 
       <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         {/* Ambient background glow */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[500px] bg-gradient-to-tr from-brand-100/40 via-indigo-100/30 to-purple-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <div className="max-w-xl w-full bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-xl relative z-10 space-y-6">
+        <div className="max-w-xl w-full bg-white dark:bg-slate-900 rounded-3xl p-8 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-xl relative z-10 space-y-6">
           
           <div className="text-center">
             <span className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-tr from-brand-600 to-indigo-600 rounded-2xl shadow-md shadow-brand-500/25 mb-4 text-white">

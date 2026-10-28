@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CampusConnect - Viva Preparation Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  @page {
+    size: A4;
+    margin: 1.8cm 1.5cm;
+    @bottom-center {
+      content: counter(page);
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1e293b;
+    background-color: #ffffff;
+    line-height: 1.6;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: #0f172a;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    page-break-after: avoid;
+  }
+
+  h1 {
+    font-size: 20pt;
+    font-weight: 800;
+    color: #312e81;
+    border-bottom: 2.5px solid #4f46e5;
+    padding-bottom: 8px;
+    margin-top: 0;
+  }
+
+  h2 {
+    font-size: 14pt;
+    color: #4338ca;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 5px;
+    margin-top: 1.8em;
+  }
+
+  h3 {
+    font-size: 11.5pt;
+    color: #1e1b4b;
+    margin-top: 1.2em;
+  }
+
+  p {
+    margin: 0.6em 0;
+  }
+
+  strong {
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  hr {
+    border: none;
+    height: 1px;
+    background-color: #cbd5e1;
+    margin: 1.8em 0;
+  }
+
+  blockquote {
+    margin: 1em 0;
+    padding: 0.7em 1.2em;
+    background-color: #f8fafc;
+    border-left: 4px solid #6366f1;
+    border-radius: 4px;
+    color: #334155;
+    font-size: 9.5pt;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+    font-size: 9pt;
+    background-color: #f1f5f9;
+    color: #4338ca;
+    padding: 1.5px 4.5px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+  }
+
+  pre {
+    background-color: #0f172a;
+    color: #f8fafc;
+    padding: 12px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+    font-size: 8.5pt;
+    line-height: 1.45;
+    margin: 1em 0;
+    page-break-inside: avoid;
+  }
+
+  pre code {
+    background-color: transparent;
+    color: inherit;
+    padding: 0;
+    border: none;
+  }
+
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin: 1em 0;
+    page-break-inside: avoid;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    background-color: #ffffff;
+  }
+
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 7px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background-color: #f1f5f9;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  tr:nth-child(even) td {
+    background-color: #f8fafc;
+  }
+
+  ul, ol {
+    margin: 0.5em 0;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 0.3em;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+</head>
+<body>
+<h1>Campus Mentorship & Peer Tutoring Platform (CampusConnect)</h1>
+<h2>Comprehensive Project Report & Complete Viva Preparation Guide</h2>
+<blockquote><strong>Note for the Student:</strong></blockquote>
+<blockquote>This guide is customized specifically for your actual codebase. It explains every concept in simple, conversational English with real-world analogies so you can understand the inner workings and explain them with 100% confidence to any external examiner or teacher, without needing to memorize blind jargon.</blockquote>
+<hr />
+<h2>Table of Contents</h2>
+<ol>
+<li><strong>Project Overview, Problem Statement, & Objectives</strong></li>
+<li><strong>Technology Stack & "Why Did You Choose This?" (Viva Justifications)</strong></li>
+<li><strong>System Architecture (Frontend, Backend, Data, & WebRTC)</strong></li>
+<li><strong>Important Files, Functions, & Code Explained in Plain English</strong></li>
+<li><strong>Complete Application Workflow (Step-by-Step Journeys)</strong></li>
+<li><strong>Authentication, Data Flow, & API Request-Response Examples</strong></li>
+<li><strong>Implementation Reality: Strengths, Honest Challenges, Limitations, & Improvements</strong></li>
+<li><strong>40+ Likely Viva Questions & Easy, Accurate Answers</strong></li>
+<li><strong>Tricky Questions Teachers Love to Ask (and How to Handle Them)</strong></li>
+<li><strong>Final 5-Minute Quick-Revision Cheat Sheet</strong></li>
+</ol>
+<hr />
+<h2>1. Project Overview, Problem Statement, & Objectives</h2>
+<h3>1.1 What is CampusConnect?</h3>
+<p><strong>Campus Mentorship & Peer Tutoring Platform (CampusConnect)</strong> is a full-stack web application designed for university ecosystems. It connects junior students seeking academic help with qualified senior peers (mentors) for 1-on-1 tutoring sessions, slot-based scheduling, live interactive video classes, and structured feedback.</p>
+<h3>1.2 The Problem Statement</h3>
+<p>In most college campuses:</p>
+<ol>
+<li><strong>Junior-Senior Gap:</strong> Junior students struggle with difficult engineering courses (like Data Structures, Web Development, or Mathematics) but feel hesitant to approach professors or don't know which senior is good at what subject.</li>
+<li><strong>Unstructured Peer Learning:</strong> Guidance happens randomly over WhatsApp groups or library benches with no schedule tracking, no timetable conflict checks, and no accountability.</li>
+<li><strong>No Quality Assessment:</strong> Juniors cannot tell who is an effective tutor because there is no verified review or rating system.</li>
+<li><strong>Scattered Meeting Tools:</strong> Coordinating Google Meet links, WhatsApp chats, and calendar invites leads to missed sessions.</li>
+</ol>
+<h3>1.3 Key Objectives of the Project</h3>
+<ul>
+<li><strong>Centralized Mentor Directory:</strong> Allow juniors to filter mentors by department, specific subjects, and student star ratings.</li>
+<li><strong>Conflict-Free Scheduling:</strong> Allow mentors to publish their free time slots and allow students to book them with automatic conflict detection (a student cannot book two sessions at the same time).</li>
+<li><strong>Integrated Video Classroom:</strong> Provide an in-browser WebRTC video call with microphone/camera controls, real screen sharing, and synchronized live chat without leaving the platform.</li>
+<li><strong>Closed-Loop Feedback:</strong> Allow students to submit a 1-to-5 star rating and written review <em>only after</em> a session is completed, automatically recalculating the mentor's cumulative rating.</li>
+<li><strong>Administrative Governance:</strong> Provide university administrators with a high-level analytics dashboard to inspect session trends, popular subjects, and deactivate disruptive accounts.</li>
+</ul>
+<h3>1.4 Real Implemented Features vs What is Optional/Future</h3>
+<p>To answer viva questions honestly, know exactly what is built in your project:</p>
+<ul>
+<li>✅ <strong>Multi-Role Authentication:</strong> Student, Mentor, and Admin roles with role-based route protection.</li>
+<li>✅ <strong>University Verification:</strong> Roll number validation during signup.</li>
+<li>✅ <strong>Dynamic Mentor Directory:</strong> Search by mentor name/bio, filter by department and subject, sort by rating and total sessions.</li>
+<li>✅ <strong>Availability & Slot Booking Engine:</strong> Mentors create time slots; students book slots; automatic validation prevents double booking and past conflicts.</li>
+<li>✅ <strong>Real-Time Video Classroom:</strong> PeerJS + WebRTC direct media streams with Socket.io signaling.</li>
+<li>✅ <strong>Media Controls & Screen Sharing:</strong> Native camera/mic mute toggles, real browser screen capture (<code>navigator.mediaDevices.getDisplayMedia</code>), plus fallback animated canvas streams for testing environments where no physical webcam is plugged in.</li>
+<li>✅ <strong>In-Call Real-Time Chat:</strong> Socket.io messaging during live video calls.</li>
+<li>✅ <strong>Rating & Review System:</strong> Star reviews restricted strictly to completed sessions; automatic recalculation of mentor average rating.</li>
+<li>✅ <strong>Admin Management:</strong> Visual statistics cards, subject popularity charts, user status toggle (<code>active</code> ⇄ <code>disabled</code>).</li>
+<li>✅ <strong>Dual-Mode Data Architecture:</strong> Can run in standalone demo mode using <code>localStorage</code> simulation with initial seed data, OR switch to real Express REST API calls via <code>.env</code> configuration.</li>
+</ul>
+<hr />
+<h2>2. Technology Stack & "Why Did You Choose This?"</h2>
+<p>Examiners love asking: <em>"Why did you use React instead of plain HTML?"</em> or <em>"Why Express over Django?"</em> Here is the breakdown with clear viva-ready reasons:</p>
+<div class='table-wrapper'><table><thead><tr><th>Layer</th><th>Technology</th><th>Version</th><th>Plain-English Reason for Choosing It</th></tr></thead><tbody><tr><td><strong>Frontend Framework</strong></td><td>React.js (with Vite)</td><td>18.2</td><td>React uses a <strong>Component-Based Architecture</strong> and a <strong>Virtual DOM</strong>, meaning only changed UI parts re-render instead of refreshing the whole page. Vite provides ultra-fast development startup using native ES modules.</td></tr><tr><td><strong>Routing</strong></td><td>React Router DOM</td><td>6.11</td><td>Enables Single Page Application (SPA) routing with protected route guards without reloading the browser.</td></tr><tr><td><strong>Styling</strong></td><td>Tailwind CSS</td><td>3.3</td><td>Utility-first CSS allows building modern, responsive, dark-mode glassmorphic interfaces fast without writing hundreds of messy separate CSS files.</td></tr><tr><td><strong>Icons</strong></td><td>Lucide React</td><td>0.244</td><td>Clean, consistent, lightweight SVG icon package.</td></tr><tr><td><strong>HTTP Client</strong></td><td>Axios</td><td>1.4</td><td>Provides cleaner syntax than <code>fetch()</code>, automatic JSON transformation, and request <strong>interceptors</strong> to automatically attach the JWT token to every outgoing request.</td></tr><tr><td><strong>Backend Runtime</strong></td><td>Node.js</td><td>v18+</td><td>JavaScript on the server. Allows using one single programming language (JS) across both frontend and backend. Highly efficient <strong>event-driven, non-blocking I/O</strong>.</td></tr><tr><td><strong>Backend Framework</strong></td><td>Express.js</td><td>4.18</td><td>Minimal and flexible web framework for Node.js. Simplifies routing, middleware creation, and JSON REST API construction.</td></tr><tr><td><strong>Real-time Signaling</strong></td><td>Socket.io</td><td>4.6</td><td>Enables bidirectional, low-latency WebSocket communication between client and server for WebRTC room coordination and live in-call text chat.</td></tr><tr><td><strong>Peer-to-Peer Video</strong></td><td>WebRTC & PeerJS</td><td>1.4</td><td>WebRTC transmits audio, video, and screen data <strong>directly between peers</strong> without streaming video through our server, saving server bandwidth and reducing latency. PeerJS simplifies complex WebRTC handshake code.</td></tr><tr><td><strong>Security & Auth</strong></td><td>JSON Web Tokens (JWT) & bcryptjs</td><td>9.0 / 2.4</td><td><code>bcryptjs</code> one-way hashes passwords so plain passwords are never stored. <code>jsonwebtoken</code> creates stateless cryptographically signed tokens for session security.</td></tr><tr><td><strong>Data Storage</strong></td><td>Dual-Mode (In-Memory Store / LocalStorage + Mongoose Model blueprints)</td><td>Custom</td><td>Allows the platform to work offline/in demo mode instantly via browser <code>localStorage</code> or connect to Express in-memory <code>dbStore</code> / MongoDB.</td></tr></tbody></table></div>
+<h3>Viva Defense Tip:</h3>
+<blockquote><em>"Sir/Ma'am, we chose the MERN/JavaScript stack because having JavaScript on both ends (React on frontend, Node on backend) allowed us to reuse data structures and validation logic, while WebRTC and Socket.io provided zero-latency direct peer-to-peer tutoring rooms without costly third-party video subscriptions."</em></blockquote>
+<hr />
+<h2>3. System Architecture</h2>
+<h3>3.1 High-Level Architectural Diagram</h3>
+<pre><code class='language-'>                     +-------------------------------------------------+
+                     |                 CLIENT BROWSER                  |
+                     |  React 18 Single Page Application (Vite Server) |
+                     +-------------------------------------------------+
+                                      |              |
+                     REST API Calls   |              | WebRTC Signaling
+                     (Axios + JWT)    |              | (Socket.io + PeerJS)
+                                      v              v
+                     +-------------------------------------------------+
+                     |            EXPRESS BACKEND SERVER               |
+                     |               (Node.js Port 5001)               |
+                     |  - Auth Middleware &amp; Role Middleware            |
+                     |  - REST Controllers (Auth, Mentors, Bookings)   |
+                     |  - Socket.io Signaling Coordinator              |
+                     +-------------------------------------------------+
+                                      |              |
+                     Data Persistence |              | Peer Media Stream
+                     (Queries / Store)|              | (Direct P2P Audio/Video)
+                                      v              v
+                     +------------------+    +-------------------------+
+                     |  DATABASE STORE  |    |     REMOTE PEER         |
+                     | (dbStore Memory  |    |  (Student &lt;-&gt; Mentor    |
+                     |   or MongoDB)    |    |   Direct Media Stream)  |
+                     +------------------+    +-------------------------+</code></pre>
+<h3>3.2 Architectural Flow Layers</h3>
+<ol>
+<li><strong>Presentation Layer (Frontend - React):</strong></li>
+</ol>
+<ul>
+<li>Components (<code>Navbar</code>, <code>MentorCard</code>, <code>StatCard</code>, <code>BookingModal</code>).</li>
+<li>Pages (<code>Home</code>, <code>Mentors</code>, <code>StudentDashboard</code>, <code>MentorDashboard</code>, <code>VideoCall</code>, <code>AdminDashboard</code>).</li>
+<li>Context State (<code>AuthContext</code> for login state, <code>AppContext</code> for bookings and mentor data, <code>ThemeContext</code> for dark mode).</li>
+</ul>
+<ol>
+<li><strong>Service Abstraction Layer (<code>frontend/src/services</code>):</strong></li>
+</ol>
+<ul>
+<li>Contains <code>authService</code>, <code>mentorService</code>, <code>bookingService</code>, <code>availabilityService</code>, <code>reviewService</code>.</li>
+<li>Checks <code>VITE_USE_MOCK_DATA</code>. If true, reads/writes to <code>localStorage</code>. If false, uses <code>apiClient</code> (Axios) to call the Express server.</li>
+</ul>
+<ol>
+<li><strong>Network & Routing Layer (Backend - Express):</strong></li>
+</ol>
+<ul>
+<li><code>server.js</code> boots HTTP and attaches Socket.io on port 5001.</li>
+<li><code>app.js</code> registers CORS, <code>express.json()</code>, and mounts sub-routers (<code>/api/auth</code>, <code>/api/mentors</code>, <code>/api/bookings</code>, etc.).</li>
+</ul>
+<ol>
+<li><strong>Security & Middleware Layer:</strong></li>
+</ol>
+<ul>
+<li><code>authMiddleware.js</code>: Reads <code>Authorization: Bearer <token></code>, verifies JWT signature, and attaches decoded user to <code>req.user</code>.</li>
+<li><code>roleMiddleware.js</code>: Checks if <code>req.user.role</code> is in the allowed list (e.g. only <code>'student'</code> can book, only <code>'mentor'</code> can publish slots, only <code>'admin'</code> can view platform stats).</li>
+</ul>
+<ol>
+<li><strong>Business Logic & Controller Layer:</strong></li>
+</ol>
+<ul>
+<li>Controllers (<code>authController</code>, <code>bookingController</code>, etc.) validate incoming inputs and call services.</li>
+<li>Services execute business rules (e.g., checking if a slot is already booked or if times overlap).</li>
+</ul>
+<ol>
+<li><strong>Data Storage Layer:</strong></li>
+</ol>
+<ul>
+<li>In-memory store (<code>dbStore.js</code>) contains initialized arrays of <code>users</code>, <code>mentors</code>, <code>availability</code>, <code>bookings</code>, and <code>reviews</code>.</li>
+<li>Clean Object Models (<code>User.js</code>, <code>Mentor.js</code>, <code>Booking.js</code>, <code>Availability.js</code>, <code>Review.js</code>) define schema structures and contain ready-to-use Mongoose MongoDB schema blueprints.</li>
+</ul>
+<ol>
+<li><strong>Signaling & WebRTC Layer:</strong></li>
+</ol>
+<ul>
+<li>Socket.io coordinates room joins (<code>join-room</code>), relays ICE candidates and media toggles (<code>media-state-change</code>), and broadcasts in-call chat messages (<code>send-message</code>).</li>
+<li>PeerJS establishes the direct peer-to-peer media connection so high-resolution video does not pass through the backend server.</li>
+</ul>
+<hr />
+<h2>4. Important Files, Functions, & Code Explained in Plain English</h2>
+<p>Here are the most critical files in your project. You can explain these line-by-line during your viva.</p>
+<h3>4.1 Backend Entry Points</h3>
+<h4>[server.js](file:///c:/BEE%20PROJECT/Campus-Mentorship-Peer-Tutoring-Platform/backend/src/server.js)</h4>
+<ul>
+<li><strong>Role:</strong> The master server script. Creates the HTTP server, mounts Socket.io for WebRTC signaling, and starts listening on port 5001.</li>
+<li><strong>Key Code Concept:</strong></li>
+</ul>
+<pre><code class='language-javascript'>  const server = http.createServer(app);
+  const io = new Server(server, { cors: { origin: env.CORS_ORIGIN } });
+  
+  io.on(&#x27;connection&#x27;, (socket) =&gt; {
+    socket.on(&#x27;join-room&#x27;, ({ bookingId, userId, userName }) =&gt; {
+      socket.join(bookingId); // Creates a private virtual room for that booking
+      socket.to(bookingId).emit(&#x27;user-connected&#x27;, { userId, userName, socketId: socket.id });
+    });
+  });</code></pre>
+<ul>
+<li><strong>Plain English:</strong> When student and mentor open the video call for <code>bookingId</code>, Socket.io puts both into a private virtual room. When one enters, it alerts the other: <em>"Hey, user Arjun has entered room booking001; you can call their Peer ID now!"</em></li>
+</ul>
+<h4>[app.js](file:///c:/BEE%20PROJECT/Campus-Mentorship-Peer-Tutoring-Platform/backend/src/app.js)</h4>
+<ul>
+<li><strong>Role:</strong> Express configuration. Adds JSON body parser, CORS policy, binds routes (<code>/api/auth</code>, <code>/api/bookings</code>, etc.), and adds the global error-handling middleware.</li>
+</ul>
+<hr />
+<h3>4.2 Security & Middleware</h3>
+<h4>[authMiddleware.js](file:///c:/BEE%20PROJECT/Campus-Mentorship-Peer-Tutoring-Platform/backend/src/middleware/authMiddleware.js)</h4>
+<ul>
+<li><strong>Role:</strong> Protects private endpoints from unauthorized visitors.</li>
+<li><strong>Key Code Concept:</strong></li>
+</ul>
+<pre><code class='language-javascript'>  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith(&#x27;Bearer &#x27;)) {
+    return res.status(401).json({ message: &#x27;Access denied. No authentication token provided.&#x27; });
+  }
+  const token = authHeader.split(&#x27; &#x27;)[1];
+  const decoded = jwt.verify(token, env.JWT_SECRET);
+  req.user = decoded; // Store user details in the request object for the next function
+  next();</code></pre>
+<ul>
+<li><strong>Plain English:</strong> Like a campus security guard checking an ID badge. If you do not show a valid signed token, you are stopped with an HTTP 401 Unauthorized error. If valid, the guard writes down who you are (<code>req.user = decoded</code>) and lets you through (<code>next()</code>).</li>
+</ul>
+<h4>[roleMiddleware.js](file:///c:/BEE%20PROJECT/Campus-Mentorship-Peer-Tutoring-Platform/backend/src/middleware/roleMiddleware.js)</h4>
+<ul>
+<li><strong>Role:</strong> Enforces Role-Based Access Control (RBAC).</li>
+<li><strong>Plain English:</strong> Even if you have an ID badge, a student cannot enter the "Faculty/Admin Only" room. If <code>allowedRoles.includes(req.user.role)</code> is false, it returns an HTTP 403 Forbidden error.</li>
+</ul>
+<hr />
+<h3>4.3 Core Business Logic (Backend Services)</h3>
+<h4>[bookingService.js](file:///c:/BEE%20PROJECT/Campus-Mentorship-Peer-Tutoring-Platform/backend/src/services/bookingService.js)</h4>
+<ul>
+<li><strong>Role:</strong> Manages the booking lifecycle and enforces academic integrity rules.</li>
+<li><strong>Important Functions:</strong></li>
+</ul>
+<ol>
+<li><code>createBooking(studentId, { mentorId, slotId })</code>:</li>
+</ol>
+<ul>
+<li>Checks if the requested slot exists and is still <code>available</code>.</li>
+<li><strong>Timetable Conflict Check:</strong> Searches existing bookings to see if the student already booked another session on that exact date and start time.</li>
+<li>Sets <code>slot.status = 'booked'</code>.</li>
+<li>Creates and stores a new booking object with <code>status: 'upcoming'</code>.</li>
+</ul>
+<ol>
+<li><code>updateBookingStatus(userId, role, bookingId, { status })</code>:</li>
+</ol>
+<ul>
+<li>Allows student, mentor, or admin to cancel or complete a session.</li>
+<li><strong>Auto-Rollback:</strong> If a session is cancelled, it finds the mentor's slot and resets it back to <code>available</code> so another student can book it.</li>
+<li><strong>Mentor Recognition:</strong> If a session is marked <code>completed</code>, it increments <code>mentor.totalSessions += 1</code>.</li>
+</ul>
+<h4>[reviewService.js](file:///c:/BEE%20PROJECT/Campus-Mentorship-Peer-Tutoring-Platform/backend/src/services/reviewService.js)</h4>
+<ul>
+<li><strong>Role:</strong> Handles ratings and prevents fake reviews.</li>
+<li><strong>Key Validations:</strong></li>
+<li>Booking must exist and belong to the student submitting the review.</li>
+<li>The booking <code>status</code> must be <code>'completed'</code> (cannot review an upcoming or cancelled session).</li>
+<li>Prevents duplicate reviews for the same session.</li>
+<li><strong>Dynamic Rating Recalculation:</strong> Uses JavaScript's <code>.reduce()</code> array method:</li>
+</ul>
+<pre><code class='language-javascript'>    const totalRating = mentorReviews.reduce((sum, r) =&gt; sum + r.rating, 0);
+    const avgRating = totalRating / mentorReviews.length;
+    mentor.rating = parseFloat(avgRating.toFixed(1));</code></pre>
+<hr />
+<h3>4.4 Frontend State & Navigation</h3>
+<h4>[AppRoutes.jsx](file:///c:/BEE%20PROJECT/Campus-Mentorship-Peer-Tutoring-Platform/frontend/src/routes/AppRoutes.jsx)</h4>
+<ul>
+<li><strong>Role:</strong> The client-side traffic controller. Defines all URL paths and wraps private screens inside <code><ProtectedRoute allowedRoles={[...]}></code>.</li>
+<li><strong>Structure:</strong></li>
+<li>Public: <code>/</code>, <code>/login</code>, <code>/register</code>, <code>/mentors</code>, <code>/mentor/:id</code>.</li>
+<li>Student: <code>/student/dashboard</code>, <code>/student/bookings</code>, <code>/student/video/:bookingId</code>, <code>/student/profile</code>.</li>
+<li>Mentor: <code>/mentor/dashboard</code>, <code>/mentor/availability</code>, <code>/mentor/bookings</code>, <code>/mentor/video/:bookingId</code>, <code>/mentor/profile</code>.</li>
+<li>Admin: <code>/admin/dashboard</code>, <code>/admin/users</code>, <code>/admin/bookings</code>, <code>/admin/statistics</code>.</li>
+</ul>
+<h4>[AuthContext.jsx](file:///c:/BEE%20PROJECT/Campus-Mentorship-Peer-Tutoring-Platform/frontend/src/context/AuthContext.jsx)</h4>
+<ul>
+<li><strong>Role:</strong> Global authentication store. Uses React's Context API so any button or navbar across the entire application instantly knows who is logged in (<code>user</code>, <code>login</code>, <code>register</code>, <code>logout</code>).</li>
+</ul>
+<h4>[AppContext.jsx](file:///c:/BEE%20PROJECT/Campus-Mentorship-Peer-Tutoring-Platform/frontend/src/context/AppContext.jsx)</h4>
+<ul>
+<li><strong>Role:</strong> Global application data store. Loads mentors, user bookings, availability slots, and notifications. Exposes action functions like <code>createBooking</code>, <code>cancelBooking</code>, <code>completeBooking</code>, and <code>submitReview</code>.</li>
+</ul>
+<hr />
+<h3>4.5 The Video Classroom & WebRTC Engine</h3>
+<h4>[VideoCall.jsx](file:///c:/BEE%20PROJECT/Campus-Mentorship-Peer-Tutoring-Platform/frontend/src/pages/VideoCall.jsx)</h4>
+<ul>
+<li><strong>Role:</strong> The real-time interactive classroom page.</li>
+<li><strong>How It Works Step-by-Step:</strong></li>
+</ul>
+<ol>
+<li><strong>Hardware Acquisition:</strong> Calls <code>navigator.mediaDevices.getUserMedia({ video: true, audio: true })</code> to capture the local webcam and mic.</li>
+<li><strong>Fallback Simulation:</strong> If the computer has no camera or permission is denied, it automatically triggers <code>createSimulatedCanvasStream()</code>, generating a dynamic HTML5 animated canvas stream so the user interface and call test never crash!</li>
+<li><strong>PeerJS Registration:</strong> Connects to PeerJS server to get a unique <code>peerId</code>.</li>
+<li><strong>Socket Room Join:</strong> Emits <code>join-room</code> with <code>{ bookingId, userId, peerId }</code>.</li>
+<li><strong>Media Exchange:</strong> When the other participant joins, an outgoing WebRTC call is initiated via <code>peer.call(peerId, stream)</code>. The remote stream is attached to the remote <code><video></code> tag.</li>
+<li><strong>Track Replacement for Screen Share:</strong> When the user clicks "Share Screen", <code>navigator.mediaDevices.getDisplayMedia()</code> captures the desktop screen. It replaces the outgoing video track on the WebRTC peer connection using <code>videoSender.replaceTrack(screenTrack)</code> so the remote student instantly sees the slides or code editor.</li>
+<li><strong>Real-time Live Chat:</strong> Text messages typed into the chat panel are emitted via Socket.io and appended to the in-call message list.</li>
+</ol>
+<hr />
+<h2>5. Complete Application Workflow (Step-by-Step)</h2>
+<p>Here is the exact journey through the application from start to finish:</p>
+<pre><code class='language-'>[Student Signs Up] 
+       │
+       ▼
+[Browses Mentors Page] ──(Filters by &quot;Computer Science&quot; &amp; &quot;React&quot;)──▶ [Views Mentor Profile]
+                                                                              │
+                                                                              ▼
+[Reviews Bookings Tab] ◀──(Booking status = &#x27;upcoming&#x27;)─── [Selects Date &amp; Books Available Slot]
+       │
+       ▼ (Scheduled Time Arrives)
+[Enters Video Tutoring Room (/student/video/:id)]
+       │
+       ├── WebRTC connects Audio/Video directly
+       ├── Real Screen Sharing for code/slides
+       └── Live In-Call Text Chat via Socket.io
+       │
+       ▼ (Class Finishes)
+[Mentor Marks Session &#x27;Completed&#x27;]
+       │
+       ├── Mentor&#x27;s total completed sessions count increments (+1)
+       └── Unlocks Review Form on Student Dashboard
+       │
+       ▼
+[Student Submits 5-Star Rating &amp; Review] ──▶ [Mentor&#x27;s Cumulative Rating Recalculates]
+       │
+       ▼
+[Admin Dashboard] ──▶ Aggregates platform statistics, trend lines, and user controls</code></pre>
+<h3>Walkthrough Scenario for Viva:</h3>
+<ol>
+<li><strong>Registration:</strong> A junior student registers with Name, College Email, and University Roll Number (<code>22BCSE101</code>). Password is encrypted.</li>
+<li><strong>Discovery:</strong> Student clicks "Find Mentors". Mentors are displayed as cards showing their photo, department, year, star rating, and subjects. The student selects "JavaScript".</li>
+<li><strong>Booking:</strong> The student clicks "Book Session" on mentor Rahul Sharma's card. A modal opens showing Rahul's published slots. The student picks <code>August 20, 10:00 AM - 11:00 AM</code>. The system verifies no time clash exists, marks the slot as booked, and creates an upcoming booking.</li>
+<li><strong>Tutoring Session:</strong> Both student and mentor open <code>/student/video/:bookingId</code> or <code>/mentor/video/:bookingId</code>. The webcam and microphone turn on. Both can see and hear each other, share screens, and exchange text messages in the chat panel.</li>
+<li><strong>Session Wrap-Up:</strong> Mentor clicks "End Call" and confirms the session is completed.</li>
+<li><strong>Review:</strong> Back on the Student Dashboard, an alert appears: <em>"You have an unreviewed session with Rahul Sharma"</em>. The student rates 5 stars and writes: <em>"Explained closures with great examples!"</em> Rahul's average rating updates automatically.</li>
+<li><strong>Administration:</strong> College admin logs in at <code>/admin/dashboard</code>. The admin sees total completed sessions, subject popularity graphs, and can suspend fraudulent accounts if needed.</li>
+</ol>
+<hr />
+<h2>6. Authentication, Data Operations, & API Examples</h2>
+<h3>6.1 Authentication Mechanism</h3>
+<ul>
+<li><strong>Password Security:</strong> Uses <code>bcryptjs</code>. During registration, plain passwords pass through <code>bcrypt.hash(password, 10)</code> to produce a secure 60-character salted hash. During login, <code>bcrypt.compare()</code> verifies the entered string against the stored hash without ever decrypting it.</li>
+<li><strong>JWT (JSON Web Token):</strong></li>
+<li><strong>Header:</strong> Algorithm used (<code>HS256</code>).</li>
+<li><strong>Payload:</strong> User identification data <code>{ id, email, role }</code>.</li>
+<li><strong>Signature:</strong> Hash generated using <code>JWT_SECRET</code> key on the server.</li>
+<li><strong>Client Storage:</strong> The frontend receives the JWT upon login and saves it in <code>localStorage</code> (<code>cc_auth_token</code>). Axios request interceptor attaches this token to every outgoing header:</li>
+</ul>
+<pre><code class='language-http'>  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
+<h3>6.2 Key API Endpoints & Request/Response Examples</h3>
+<h4>1. User Login</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /api/auth/login</code></li>
+<li><strong>Request Body:</strong></li>
+</ul>
+<pre><code class='language-json'>  {
+    &quot;email&quot;: &quot;student@campusconnect.com&quot;,
+    &quot;password&quot;: &quot;student123&quot;
+  }</code></pre>
+<ul>
+<li><strong>Response (200 OK):</strong></li>
+</ul>
+<pre><code class='language-json'>  {
+    &quot;success&quot;: true,
+    &quot;data&quot;: {
+      &quot;token&quot;: &quot;eyJhbGciOiJIUzI1Ni...&quot;,
+      &quot;user&quot;: {
+        &quot;id&quot;: &quot;student_demo&quot;,
+        &quot;name&quot;: &quot;Arjun Mehta&quot;,
+        &quot;email&quot;: &quot;student@campusconnect.com&quot;,
+        &quot;rollNumber&quot;: &quot;22BCSE101&quot;,
+        &quot;role&quot;: &quot;student&quot;,
+        &quot;department&quot;: &quot;Computer Science&quot;,
+        &quot;year&quot;: 2,
+        &quot;avatar&quot;: &quot;https://images.unsplash.com/...&quot;,
+        &quot;mentorId&quot;: null
+      }
+    }
+  }</code></pre>
+<h4>2. Get Filtered Mentors List</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>GET /api/mentors?department=Computer%20Science&subject=React&sortBy=rating</code></li>
+<li><strong>Response (200 OK):</strong></li>
+</ul>
+<pre><code class='language-json'>  {
+    &quot;success&quot;: true,
+    &quot;count&quot;: 1,
+    &quot;data&quot;: [
+      {
+        &quot;id&quot;: &quot;mentor001&quot;,
+        &quot;name&quot;: &quot;Rahul Sharma&quot;,
+        &quot;department&quot;: &quot;Computer Science&quot;,
+        &quot;year&quot;: 4,
+        &quot;subjects&quot;: [&quot;JavaScript&quot;, &quot;React&quot;, &quot;Data Structures&quot;],
+        &quot;rating&quot;: 4.8,
+        &quot;totalSessions&quot;: 124
+      }
+    ]
+  }</code></pre>
+<h4>3. Create a Booking</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /api/bookings</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer <token></code></li>
+<li><strong>Request Body:</strong></li>
+</ul>
+<pre><code class='language-json'>  {
+    &quot;mentorId&quot;: &quot;mentor001&quot;,
+    &quot;slotId&quot;: &quot;slot001&quot;
+  }</code></pre>
+<ul>
+<li><strong>Response (201 Created):</strong></li>
+</ul>
+<pre><code class='language-json'>  {
+    &quot;success&quot;: true,
+    &quot;data&quot;: {
+      &quot;id&quot;: &quot;booking_1693001200000&quot;,
+      &quot;studentId&quot;: &quot;student_demo&quot;,
+      &quot;mentorId&quot;: &quot;mentor001&quot;,
+      &quot;mentorName&quot;: &quot;Rahul Sharma&quot;,
+      &quot;subject&quot;: &quot;JavaScript&quot;,
+      &quot;date&quot;: &quot;2026-08-20&quot;,
+      &quot;startTime&quot;: &quot;10:00 AM&quot;,
+      &quot;endTime&quot;: &quot;11:00 AM&quot;,
+      &quot;status&quot;: &quot;upcoming&quot;
+    }
+  }</code></pre>
+<h4>4. Post a Session Review</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /api/reviews</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer <token></code></li>
+<li><strong>Request Body:</strong></li>
+</ul>
+<pre><code class='language-json'>  {
+    &quot;bookingId&quot;: &quot;booking001&quot;,
+    &quot;rating&quot;: 5,
+    &quot;comment&quot;: &quot;Super helpful session on React hooks and state management!&quot;
+  }</code></pre>
+<ul>
+<li><strong>Response (201 Created):</strong></li>
+</ul>
+<pre><code class='language-json'>  {
+    &quot;success&quot;: true,
+    &quot;message&quot;: &quot;Review submitted successfully.&quot;,
+    &quot;data&quot;: {
+      &quot;id&quot;: &quot;review_1693005500000&quot;,
+      &quot;rating&quot;: 5,
+      &quot;comment&quot;: &quot;Super helpful session on React hooks and state management!&quot;
+    }
+  }</code></pre>
+<hr />
+<h2>7. Implementation Details, Honest Challenges, Limitations, & Improvements</h2>
+<p>Examiners respect students who give realistic, honest engineering evaluations of their own project instead of claiming it is "100% bug-free and perfect".</p>
+<h3>7.1 Key Technical Challenges Faced & Solved</h3>
+<ol>
+<li><strong>WebRTC NAT/Firewall Traversal:</strong></li>
+</ol>
+<ul>
+<li><em>Problem:</em> WebRTC peer connections frequently fail on campus Wi-Fi networks due to strict Symmetric NAT and institutional firewalls.</li>
+<li><em>Solution:</em> Configured Google's public STUN servers (<code>stun:stun.l.google.com:19302</code>) in PeerJS options to discover public IP addresses and NAT mappings.</li>
+</ul>
+<ol>
+<li><strong>Hardware Testing Without Physical Webcams:</strong></li>
+</ol>
+<ul>
+<li><em>Problem:</em> While testing on developer machines or lab computers without webcams, <code>navigator.mediaDevices.getUserMedia</code> threw a <code>NotFoundError</code>, causing crashes.</li>
+<li><em>Solution:</em> Engineered an intelligent fallback generator (<code>createSimulatedCanvasStream</code>) that captures a live 30 FPS animated canvas stream when hardware media is unavailable.</li>
+</ul>
+<ol>
+<li><strong>State Synchronization on Double Booking:</strong></li>
+</ol>
+<ul>
+<li><em>Problem:</em> Two students opening the same mentor page at the same time could try to click the same slot.</li>
+<li><em>Solution:</em> Backend service verifies slot availability inside <code>createBooking()</code> before saving and atomically flips <code>slot.status = 'booked'</code>. If already booked, it throws a clear 400 error.</li>
+</ul>
+<ol>
+<li><strong>Dynamic Rating Maintenance:</strong></li>
+</ol>
+<ul>
+<li><em>Problem:</em> Calculating a mentor's rating on every search query would slow down the database.</li>
+<li><em>Solution:</em> Recalculated and persisted the average directly onto the Mentor object whenever a new review is submitted.</li>
+</ul>
+<h3>7.2 Current Limitations (Honest Viva Answers)</h3>
+<ul>
+<li><strong>Signaling Server Scale:</strong> Currently using a single-instance Socket.io server. In an enterprise system with 50,000 students, Socket.io would need a Redis adapter to scale across multiple Node.js server processes.</li>
+<li><strong>Group Video Calls:</strong> WebRTC mesh architecture works great for 1-on-1 peer tutoring. For a group class of 20+ students, a Selective Forwarding Unit (SFU) like Mediasoup or Jitsi would be required to prevent browser upload overload.</li>
+<li><strong>Automated Email/SMS Reminders:</strong> Current notifications are in-app; adding Twilio or Nodemailer would allow sending email/SMS calendar reminders 15 minutes before the session starts.</li>
+</ul>
+<h3>7.3 Future Enhancements</h3>
+<ul>
+<li><strong>AI Peer Matching:</strong> An algorithm using vector embeddings to recommend mentors based on course syllabus similarity.</li>
+<li><strong>Collaborative Whiteboard:</strong> A shared HTML5 canvas where mentor and student can draw circuit diagrams or math equations together during the call.</li>
+<li><strong>Recorded Sessions Repository:</strong> Optional secure cloud recording for later revision before semester exams.</li>
+</ul>
+<hr />
+<h2>8. 40+ Likely Viva Questions with Easy, Accurate Answers</h2>
+<p>Here are categorized viva questions with short, crystal-clear answers you can deliver smoothly:</p>
+<h3>Category A: Basic & Conceptual (Questions 1 - 10)</h3>
+<p><strong>Q1: What is the main purpose of your project?</strong></p>
+<p><em>Answer:</em> "It is an academic web platform that connects university students with senior peer mentors for 1-on-1 tutoring, slot scheduling, in-browser video calls, and verified reviews."</p>
+<p><strong>Q2: What is the technology stack used?</strong></p>
+<p><em>Answer:</em> "We used the MERN/JavaScript stack: React.js with Vite and Tailwind CSS on the frontend, Node.js and Express.js on the backend, Socket.io and PeerJS/WebRTC for real-time video calls, and JWT with bcrypt for authentication."</p>
+<p><strong>Q3: What are the different user roles in your system?</strong></p>
+<p><em>Answer:</em> "There are three distinct roles: Student (can browse mentors, book slots, attend calls, submit reviews), Mentor (can define availability slots, conduct tutoring, track reviews), and Admin (can monitor platform metrics and disable accounts)."</p>
+<p><strong>Q4: What is a Single Page Application (SPA)?</strong></p>
+<p><em>Answer:</em> "An SPA is a web application that loads a single HTML file once. When the user navigates between pages, JavaScript dynamically updates the content without reloading the whole page from the server, making it fast and smooth."</p>
+<p><strong>Q5: What is the difference between Frontend and Backend?</strong></p>
+<p><em>Answer:</em> "Frontend is the client-side user interface that runs in the browser and handles user interactions. Backend is the server-side logic that handles database operations, authentication, business validation, and API routing."</p>
+<p><strong>Q6: What is a REST API?</strong></p>
+<p><em>Answer:</em> "REST stands for Representational State Transfer. It is an architectural style where client and server exchange data using standard HTTP methods like GET to retrieve data, POST to create data, PUT/PATCH to update data, and DELETE to remove data."</p>
+<p><strong>Q7: Why do we use JSON in web applications?</strong></p>
+<p><em>Answer:</em> "JSON (JavaScript Object Notation) is a lightweight, human-readable, language-independent text format that is natively supported by JavaScript, making it ideal for client-server communication."</p>
+<p><strong>Q8: What is the role of <code>package.json</code>?</strong></p>
+<p><em>Answer:</em> "It is the project manifest file. It lists project metadata, custom execution scripts (like <code>npm start</code> and <code>npm run dev</code>), and all external dependencies and libraries needed to run the project."</p>
+<p><strong>Q9: What is the purpose of <code>.env</code> files?</strong></p>
+<p><em>Answer:</em> "<code>.env</code> files store environment-specific configurations and sensitive keys (like port numbers, database URLs, and JWT secrets) outside the source code, preventing security leaks when pushing code to Git."</p>
+<p><strong>Q10: What is CORS and why is it needed?</strong></p>
+<p><em>Answer:</em> "CORS stands for Cross-Origin Resource Sharing. Browsers block requests from one domain (frontend port 5173) to another domain (backend port 5001) for security. The backend uses the <code>cors</code> package to explicitly allow our frontend origin."</p>
+<hr />
+<h3>Category B: Frontend & React.js (Questions 11 - 20)</h3>
+<p><strong>Q11: Why did you use React instead of Vanilla HTML/CSS/JavaScript?</strong></p>
+<p><em>Answer:</em> "React offers reusable components, declarative syntax, and a Virtual DOM that only updates the specific parts of the screen that changed, resulting in faster rendering and much cleaner code organization."</p>
+<p><strong>Q12: What is the Virtual DOM and how does it work?</strong></p>
+<p><em>Answer:</em> "The Virtual DOM is a lightweight in-memory representation of the real DOM. When data changes, React creates a new Virtual DOM tree, compares it with the old one (diffing algorithm), and efficiently updates only the changed elements in the real DOM (reconciliation)."</p>
+<p><strong>Q13: What are React Hooks? Which ones did you use?</strong></p>
+<p><em>Answer:</em> "Hooks are functions that let functional components use state and lifecycle features. In our project, we heavily used <code>useState</code> for local component state, <code>useEffect</code> for fetching data and lifecycle hooks, <code>useContext</code> for global auth and app state, and <code>useRef</code> for holding video DOM elements."</p>
+<p><strong>Q14: What is the React Context API and why did you use it?</strong></p>
+<p><em>Answer:</em> "Context API provides a way to pass data through the component tree without manually passing props down at every level (prop drilling). We used <code>AuthContext</code> to share user login status across all pages and <code>AppContext</code> to share bookings and mentor data."</p>
+<p><strong>Q15: What is the difference between <code>props</code> and <code>state</code>?</strong></p>
+<p><em>Answer:</em> "<code>props</code> (properties) are read-only inputs passed from a parent component to a child component. <code>state</code> is internal data managed within the component that can change over time based on user interactions."</p>
+<p><strong>Q16: How does routing work in your application?</strong></p>
+<p><em>Answer:</em> "We use <code>react-router-dom</code> v6 with <code><BrowserRouter></code>, <code><Routes></code>, and <code><Route></code>. It intercepts URL changes in the browser address bar and renders the corresponding page component without a full page reload."</p>
+<p><strong>Q17: How did you implement Protected Routes?</strong></p>
+<p><em>Answer:</em> "We created a <code><ProtectedRoute></code> wrapper component. It checks <code>AuthContext</code>: if the user is not logged in, it redirects to <code>/login</code>. If the user's role is not in the <code>allowedRoles</code> array, it redirects them away to prevent unauthorized access."</p>
+<p><strong>Q18: What is Tailwind CSS and what is its advantage?</strong></p>
+<p><em>Answer:</em> "Tailwind is a utility-first CSS framework. Instead of writing custom class names in separate CSS files, we compose pre-built utility classes directly in JSX (<code>flex</code>, <code>p-4</code>, <code>rounded-xl</code>). It speeds up styling and ensures design consistency."</p>
+<p><strong>Q19: What is Axios and why use it over native <code>fetch()</code>?</strong></p>
+<p><em>Answer:</em> "Axios automatically transforms JSON responses, provides cleaner error handling, and crucially supports <strong>interceptors</strong>, which allow us to automatically attach the JWT Bearer token to all outgoing HTTP request headers."</p>
+<p><strong>Q20: What happens if a user enters an invalid URL in your app?</strong></p>
+<p><em>Answer:</em> "Our routing table has a fallback wildcard route <code><Route path="*" element={<NotFound />} /></code> that gracefully renders a custom 404 page with a button to return to the homepage."</p>
+<hr />
+<h3>Category C: Backend, Node.js, & Express (Questions 21 - 30)</h3>
+<p><strong>Q21: What is Node.js and how does it handle concurrency?</strong></p>
+<p><em>Answer:</em> "Node.js is an open-source, cross-platform JavaScript runtime built on Chrome's V8 engine. It uses a single-threaded, event-driven architecture with an Event Loop and non-blocking I/O to handle thousands of concurrent connections efficiently."</p>
+<p><strong>Q22: What is Express.js middleware? Give an example from your project.</strong></p>
+<p><em>Answer:</em> "Middleware is a function that has access to the request (<code>req</code>), response (<code>res</code>), and the <code>next</code> function in the application's request-response cycle. An example is our <code>authMiddleware</code>, which verifies the JWT token before allowing requests to reach private controllers."</p>
+<p><strong>Q23: How do you handle errors in your Express backend?</strong></p>
+<p><em>Answer:</em> "We use a centralized error middleware (<code>errorMiddleware.js</code>) registered at the very end of <code>app.js</code>. If any route controller encounters an error, it passes it to <code>next(error)</code>, which formats a standard JSON response with status 500 and the error message."</p>
+<p><strong>Q24: What is the role of <code>bcryptjs</code> in your project?</strong></p>
+<p><em>Answer:</em> "<code>bcryptjs</code> provides one-way salted password hashing. When a user registers, we hash their password with a salt round of 10. Salt adds random characters before hashing, preventing dictionary attacks and rainbow table lookups."</p>
+<p><strong>Q25: What is JWT and how does authentication work with it?</strong></p>
+<p><em>Answer:</em> "JWT (JSON Web Token) is a stateless authentication method. On successful login, the server signs a token containing the user ID and role with a secret key. The frontend stores this token and sends it in the <code>Authorization</code> header on subsequent requests. The server verifies the token's digital signature without querying the database for session state."</p>
+<p><strong>Q26: What are the three parts of a JSON Web Token?</strong></p>
+<p><em>Answer:</em> "1. <strong>Header:</strong> specifies token type and hashing algorithm (e.g. HS256). 2. <strong>Payload:</strong> contains user claims (id, email, role). 3. <strong>Signature:</strong> cryptographic hash of header + payload created using the secret key."</p>
+<p><strong>Q27: How does your backend prevent duplicate availability slots?</strong></p>
+<p><em>Answer:</em> "In <code>availabilityService.js</code>, before adding a slot, we search existing slots for that mentor. If a slot matches the same mentor, same date, and same start time, we reject it with an error: <em>'An availability slot already exists for this date and start time.'</em>"</p>
+<p><strong>Q28: How does your backend prevent a student from double booking themselves?</strong></p>
+<p><em>Answer:</em> "In <code>bookingService.js</code>, when a student attempts to book a slot, we check their existing bookings with status <code>upcoming</code>. If they already have a session on that same date and time, the booking is rejected."</p>
+<p><strong>Q29: What happens when a booking is cancelled?</strong></p>
+<p><em>Answer:</em> "The booking status changes to <code>'cancelled'</code>. The backend automatically finds the mentor's corresponding availability slot and resets its status from <code>'booked'</code> back to <code>'available'</code> so other students can book it."</p>
+<p><strong>Q30: How is a mentor's rating calculated?</strong></p>
+<p><em>Answer:</em> "When a student submits a review, the backend fetches all reviews for that mentor, uses <code>.reduce()</code> to calculate the sum of ratings, divides by the total count, rounds to 1 decimal place, and saves the updated score on the mentor record."</p>
+<hr />
+<h3>Category D: WebRTC & Real-Time Communication (Questions 31 - 40)</h3>
+<p><strong>Q31: What is WebRTC?</strong></p>
+<p><em>Answer:</em> "WebRTC (Web Real-Time Communication) is an open-source standard and browser API that allows peer-to-peer transmission of audio, video, and data directly between browsers without routing media streams through a server."</p>
+<p><strong>Q32: What is the difference between Socket.io and WebRTC in your project?</strong></p>
+<p><em>Answer:</em> "Socket.io acts as the <strong>Signaling Server</strong> (it introduces the two browsers, exchanges connection information, and handles text chat). WebRTC handles the <strong>actual media streaming</strong> (voice, webcam video, and screen sharing) directly between the two computers."</p>
+<p><strong>Q33: What is Signaling in WebRTC?</strong></p>
+<p><em>Answer:</em> "Before two browsers can stream video directly, they need to know each other's IP address, ports, and supported video formats. Signaling is the discovery process where browsers exchange this information (SDP offers/answers and ICE candidates) via a server (Socket.io)."</p>
+<p><strong>Q34: What is a STUN server and why did you use Google's STUN?</strong></p>
+<p><em>Answer:</em> "STUN stands for Session Traversal Utilities for NAT. Most user devices are behind home or college Wi-Fi routers (NAT) and have private IP addresses. A STUN server tells the browser its public-facing IP address and port so the remote peer can connect to it."</p>
+<p><strong>Q35: What is PeerJS and why did you use it?</strong></p>
+<p><em>Answer:</em> "PeerJS is a library that wraps WebRTC's complex connection setup (<code>RTCPeerConnection</code>, ICE handling, and offer/answer negotiations) into simple, clean events like <code>peer.call(id, stream)</code> and <code>peer.on('call', ...)</code>."</p>
+<p><strong>Q36: How does Screen Sharing work in your application?</strong></p>
+<p><em>Answer:</em> "We use the browser API <code>navigator.mediaDevices.getDisplayMedia({ video: true })</code> to capture the user's screen. We then use WebRTC's <code>replaceTrack()</code> method to swap the webcam video track with the screen track on the live connection."</p>
+<p><strong>Q37: What is the Canvas Stream Fallback you implemented?</strong></p>
+<p><em>Answer:</em> "If a device has no physical camera or the user blocks camera permission, <code>getUserMedia</code> would normally throw an error. We built a fallback that creates an HTML5 <code><canvas></code>, animates a live pulsing gradient avatar, and captures it as a 30 FPS MediaStream using <code>canvas.captureStream(30)</code> so the video room never breaks."</p>
+<p><strong>Q38: How does the in-call chat work?</strong></p>
+<p><em>Answer:</em> "The chat panel uses Socket.io. When a user submits a message, the client emits <code>send-message</code> to the server with the <code>bookingId</code>. The server relays it via <code>socket.to(bookingId).emit('receive-message')</code> to all participants in that room."</p>
+<p><strong>Q39: How do microphone mute and camera toggle work during the call?</strong></p>
+<p><em>Answer:</em> "Each <code>MediaStream</code> contains audio and video tracks. When the user clicks mute, we set <code>track.enabled = false</code>. This stops audio transmission while keeping the WebRTC peer connection open. We also emit a socket event so the remote peer sees a 'Microphone Muted' indicator."</p>
+<p><strong>Q40: Why not send all video streams through your Node.js server?</strong></p>
+<p><em>Answer:</em> "Video streams require huge network bandwidth and CPU processing. If 50 students streamed 1080p video through a single Node.js server, the server would crash. WebRTC solves this by offloading the video traffic directly between the client devices."</p>
+<hr />
+<h2>9. Tricky "Examiner Favorite" Questions & How to Defend Your Project</h2>
+<p>These are the difficult, curveball questions examiners ask to test whether you actually built the project or just downloaded a template:</p>
+<h3>Tricky Question 1:</h3>
+<blockquote><em>"I noticed you have a dual-mode system with <code>localStorage</code> and Express. Why did you implement this instead of just connecting directly to a database?"</em></blockquote>
+<ul>
+<li><strong>Best Viva Answer:</strong></li>
+</ul>
+<p><em>"Sir/Ma'am, in real-world software engineering, having decoupled service layers is a best practice. By architecting our service modules (<code>authService</code>, <code>bookingService</code>) to check <code>VITE_USE_MOCK_DATA</code>, we achieved two major advantages: first, the application can be demonstrated immediately in academic presentations or viva environments without requiring a local database server running; second, when connecting to MongoDB or Express, our entire React UI layer remains untouched because the service interfaces are identical."</em></p>
+<h3>Tricky Question 2:</h3>
+<blockquote><em>"Why did you use JWT instead of traditional server-side Sessions with Cookies?"</em></blockquote>
+<ul>
+<li><strong>Best Viva Answer:</strong></li>
+</ul>
+<p><em>"Server-side sessions require the backend to maintain a stateful session store (like Redis or in-memory session tables). If the backend restarts or scales across multiple instances, sessions can be lost unless synchronized. JWT is <strong>stateless</strong>: the user's identity is digitally signed into the token itself. The server only has to verify the mathematical signature, reducing server memory usage and making the API scalable and REST-compliant."</em></p>
+<h3>Tricky Question 3:</h3>
+<blockquote><em>"What happens if a student tries to review a mentor before the session actually takes place?"</em></blockquote>
+<ul>
+<li><strong>Best Viva Answer:</strong></li>
+</ul>
+<p><em>"Our system strictly forbids this at two levels: in the frontend UI, the 'Review' button is conditionally rendered only for bookings with <code>status === 'completed'</code>. Furthermore, on the backend in <code>reviewService.js</code>, we validate <code>booking.status === 'completed'</code>. If someone sends a forged POST request for an upcoming booking, the backend rejects it with an HTTP error: 'Cannot review this booking. The session is not marked as completed yet.'"</em></p>
+<h3>Tricky Question 4:</h3>
+<blockquote><em>"What is the difference between symmetric and asymmetric NAT, and why does WebRTC sometimes fail on university Wi-Fi?"</em></blockquote>
+<ul>
+<li><strong>Best Viva Answer:</strong></li>
+</ul>
+<p><em>"STUN servers work by discovering public IP:Port mappings. On normal (Symmetric) routers, the mapping remains constant for outward connections. But institutional university firewalls often use Symmetric NAT, where each destination IP gets a different mapped port. In that scenario, direct P2P connections cannot resolve through STUN alone, and an intermediary TURN relay server (Traversal Using Relays around NAT) is required to route the media packets."</em></p>
+<h3>Tricky Question 5:</h3>
+<blockquote><em>"Why did you use <code>bcrypt</code> instead of SHA-256 or MD5 for password storage?"</em></blockquote>
+<ul>
+<li><strong>Best Viva Answer:</strong></li>
+</ul>
+<p><em>"MD5 and SHA-256 are general-purpose cryptographic hash functions designed to be extremely fast. Because they are fast, hackers can use modern GPUs to calculate billions of hashes per second using brute force. <code>bcrypt</code> is specifically designed for passwords: it is intentionally slow and includes a configurable 'work factor' (salt rounds). This makes brute-force attacks computationally infeasible."</em></p>
+<h3>Tricky Question 6:</h3>
+<blockquote><em>"How do you prevent SQL Injection and NoSQL Injection in your project?"</em></blockquote>
+<ul>
+<li><strong>Best Viva Answer:</strong></li>
+</ul>
+<p><em>"First, we do not concatenate raw user input strings into queries. Second, in our Express routes, we use strict input validation (<code>validationMiddleware.js</code> and <code>validators.js</code>) to sanitize and type-cast incoming parameters. Third, our data models use strict property mapping so extra or malicious fields sent in the request body are ignored."</em></p>
+<hr />
+<h2>10. Final 5-Minute Quick-Revision Cheat Sheet</h2>
+<p>Keep this sheet in mind right before entering your viva room:</p>
+<h3>Core Definitions</h3>
+<ul>
+<li><strong>React 18:</strong> Component-based UI library with Virtual DOM for dynamic, partial page re-rendering.</li>
+<li><strong>Node.js:</strong> Chrome V8 JavaScript runtime for scalable, non-blocking, asynchronous backend services.</li>
+<li><strong>Express.js:</strong> Lightweight web framework for Node.js handling HTTP routes, middleware, and JSON APIs.</li>
+<li><strong>WebRTC:</strong> Peer-to-peer browser standard for live audio/video/screen streaming without routing through a server.</li>
+<li><strong>Socket.io:</strong> WebSocket library for real-time signaling, room coordination, and in-call chat.</li>
+<li><strong>JWT:</strong> Compact, URL-safe, digitally signed token for stateless authentication.</li>
+<li><strong>bcrypt:</strong> Salted, slow-hashing algorithm for secure one-way password storage.</li>
+</ul>
+<h3>Key HTTP Status Codes</h3>
+<ul>
+<li><code>200 OK</code>: Request succeeded.</li>
+<li><code>201 Created</code>: Resource successfully created (new booking or review).</li>
+<li><code>400 Bad Request</code>: Client validation error (missing roll number or timetable conflict).</li>
+<li><code>401 Unauthorized</code>: Missing or invalid JWT authentication token.</li>
+<li><code>403 Forbidden</code>: Authenticated user lacks permission (student trying to access admin dashboard).</li>
+<li><code>404 Not Found</code>: Requested resource does not exist.</li>
+<li><code>500 Internal Server Error</code>: Unhandled backend exception caught by global error middleware.</li>
+</ul>
+<h3>Crucial Project Ports & Routes</h3>
+<ul>
+<li><strong>Frontend Port:</strong> <code>5173</code> (Vite dev server)</li>
+<li><strong>Backend Port:</strong> <code>5001</code> (Express REST & Socket.io signaling)</li>
+<li><strong>Public Routes:</strong> <code>/</code> (Home), <code>/login</code>, <code>/register</code>, <code>/mentors</code>, <code>/mentor/:id</code></li>
+<li><strong>Student Routes:</strong> <code>/student/dashboard</code>, <code>/student/bookings</code>, <code>/student/video/:bookingId</code></li>
+<li><strong>Mentor Routes:</strong> <code>/mentor/dashboard</code>, <code>/mentor/availability</code>, <code>/mentor/bookings</code>, <code>/mentor/video/:bookingId</code></li>
+<li><strong>Admin Routes:</strong> <code>/admin/dashboard</code>, <code>/admin/users</code>, <code>/admin/bookings</code>, <code>/admin/statistics</code></li>
+</ul>
+<h3>Master Formula: The 30-Second Elevator Pitch</h3>
+<blockquote><em>"Our project, CampusConnect, is a full-stack campus mentorship platform built with React, Node.js, Express, Socket.io, and WebRTC. It solves unstructured peer guidance by enabling university juniors to search mentors by subject and rating, book conflict-free time slots, attend 1-on-1 interactive video tutoring sessions with screen sharing, and leave verified ratings that automatically calculate mentor credibility, all protected by JWT role-based security."</em></blockquote>
+<hr />
+<p><em>Report generated from project source code analysis.</em></p>
+</body>
+</html>

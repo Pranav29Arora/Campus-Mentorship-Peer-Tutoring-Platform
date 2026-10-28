@@ -65,7 +65,9 @@ const VideoCall = () => {
     if (booking) {
       setPeerName(isMentor ? booking.studentName || 'Junior Student' : booking.mentorName);
     }
+  }, [booking, isMentor]);
 
+  useEffect(() => {
     // Initialize local media stream
     initializeLocalStream();
 
@@ -453,7 +455,8 @@ const VideoCall = () => {
       }
     }
     stopAllTracks();
-    navigate(`/${user.role}/dashboard`);
+    const destinationRole = user?.role || 'student';
+    navigate(`/${destinationRole}/dashboard`);
   };
 
   return (

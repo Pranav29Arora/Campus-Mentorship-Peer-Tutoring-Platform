@@ -44,7 +44,7 @@ const MentorDashboard = () => {
   const todaySessions = mentorBookings.filter(b => b.date === todayStr && b.status === 'upcoming');
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 transition-colors duration-300">
       <Navbar />
 
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 text-left">
@@ -52,12 +52,12 @@ const MentorDashboard = () => {
         {/* Welcome Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 text-xs font-bold mb-2">
+              <Sparkles className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" />
               Mentor Workspace
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans">Mentor Dashboard</h1>
-            <p className="text-sm text-slate-500 mt-1">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans">Mentor Dashboard</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               Academic mentoring portal for <strong className="text-slate-800 font-bold">{user?.name}</strong>. Manage bookings and publish time slots.
             </p>
           </div>

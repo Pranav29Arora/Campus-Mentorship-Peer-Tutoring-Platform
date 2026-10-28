@@ -109,21 +109,21 @@ const AdminDashboard = ({ activeTab = 'stats' }) => {
   const { summary } = stats;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 transition-colors duration-300">
       <Navbar />
 
       <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 text-left">
         
         {/* Header */}
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold mb-2">
-            <Shield className="w-3.5 h-3.5 text-rose-600" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold mb-2">
+            <Shield className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
             Superadmin Access
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans flex items-center gap-2.5">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans flex items-center gap-2.5">
             Administration Center
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             System logs, user management, and aggregate peer mentoring performance charts.
           </p>
         </div>

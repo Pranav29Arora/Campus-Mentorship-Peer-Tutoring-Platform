@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Link } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import Loader from './Loader';
 
@@ -34,12 +34,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
           <p className="text-slate-600 mb-6 text-sm">
             You do not have permission to view this page. This section is restricted to {allowedRoles.join(' or ')} profiles.
           </p>
-          <button
-            onClick={() => window.location.href = '/'}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold shadow-md shadow-brand-500/25 hover:shadow-lg transition-all duration-200 cursor-pointer"
+          <Link
+            to="/"
+            className="block text-center w-full py-3 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold shadow-md shadow-brand-500/25 hover:shadow-lg transition-all duration-200 cursor-pointer"
           >
             Go to Home
-          </button>
+          </Link>
         </div>
       </div>
     );
