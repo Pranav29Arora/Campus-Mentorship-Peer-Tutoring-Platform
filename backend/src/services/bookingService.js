@@ -1,6 +1,7 @@
 const supabase = require('../config/supabase');
 const notificationService = require('./notificationService');
 const { sendBookingEmail } = require('../utils/sendEmail');
+const { emitBookingUpdate, emitAvailabilityUpdate } = require('../utils/socketEmitter');
 
 const formatBooking = (b) => {
   const studentName = b.student?.name || 'Junior Student';
@@ -234,6 +235,10 @@ const createBooking = async (studentId, { mentorId, slotId }) => {
     console.error('[Email Error] Failed to send booking notification email:', emailErr.message || emailErr);
   }
 
+  // 10. Broadcast real-time update to all connected clients
+  emitBookingUpdate('created', { booking: resultBooking, mentorId, studentId });
+  emitAvailabilityUpdate('booked', { mentorId, slotId, date: slot.date, startTime: slot.start_time });
+
   return resultBooking;
 };
 
@@ -337,6 +342,12 @@ const updateBookingStatus = async (userId, role, bookingId, { status }) => {
     });
   }
 
+  // Broadcast real-time update
+  emitBookingUpdate(status, { bookingId, status, mentorId: booking.mentor_id, studentId: booking.student_id });
+  if (status === 'cancelled') {
+    emitAvailabilityUpdate('freed', { mentorId: booking.mentor_id, date: booking.date, startTime: booking.start_time });
+  }
+
   return {
     ...formatBooking(booking),
     status
@@ -388,7 +399,12 @@ const deleteBooking = async (userId, role, bookingId) => {
       .eq('mentor_id', booking.mentor_id)
       .eq('date', booking.date)
       .eq('start_time', booking.start_time);
+
+    emitAvailabilityUpdate('freed', { mentorId: booking.mentor_id, date: booking.date, startTime: booking.start_time });
   }
+
+  // Broadcast deletion
+  emitBookingUpdate('deleted', { bookingId, mentorId: booking.mentor_id, studentId: booking.student_id });
 
   return { success: true, message: 'Session deleted successfully.' };
 };

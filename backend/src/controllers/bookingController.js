@@ -92,9 +92,31 @@ const deleteBooking = async (req, res, next) => {
   }
 };
 
+const testEmail = async (req, res, next) => {
+  try {
+    const { sendTestEmail } = require('../utils/sendEmail');
+    const target = req.query.email || req.body.email || req.user?.email || process.env.EMAIL_USER;
+    if (!target) {
+      return res.status(400).json({ success: false, message: 'No email target specified' });
+    }
+    const info = await sendTestEmail(target);
+    res.status(200).json({
+      success: true,
+      message: `Test email successfully sent to ${target}!`,
+      messageId: info.messageId
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to send test email.'
+    });
+  }
+};
+
 module.exports = {
   getBookings,
   createBooking,
   updateBooking,
-  deleteBooking
+  deleteBooking,
+  testEmail
 };

@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const { emitAvailabilityUpdate, emitBookingUpdate } = require('../utils/socketEmitter');
 
 const formatSlot = (s) => ({
   id: s.id,
@@ -71,7 +72,9 @@ const createSlot = async (mentorId, slotData) => {
     throw new Error(`Failed to create availability slot: ${error.message}`);
   }
 
-  return formatSlot(newSlot);
+  const formatted = formatSlot(newSlot);
+  emitAvailabilityUpdate('slot_created', { mentorId, slot: formatted });
+  return formatted;
 };
 
 const deleteSlot = async (mentorId, slotId) => {
@@ -110,6 +113,8 @@ const deleteSlot = async (mentorId, slotId) => {
       .eq('mentor_id', targetMentorId)
       .eq('date', slot.date)
       .eq('start_time', slot.start_time);
+
+    emitBookingUpdate('slot_deleted', { mentorId: targetMentorId, date: slot.date, startTime: slot.start_time });
   }
 
   const { error: deleteErr } = await supabase
@@ -120,6 +125,8 @@ const deleteSlot = async (mentorId, slotId) => {
   if (deleteErr) {
     throw new Error(`Failed to delete slot: ${deleteErr.message}`);
   }
+
+  emitAvailabilityUpdate('slot_deleted', { mentorId: targetMentorId, slotId });
 
   return { success: true, message: 'Slot deleted successfully.' };
 };

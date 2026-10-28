@@ -28,6 +28,10 @@ const io = new Server(server, {
   }
 });
 
+const { initSocketEmitter } = require('./utils/socketEmitter');
+initSocketEmitter(io);
+app.set('io', io);
+
 // Track which room each socket belongs to and active participants per room
 const socketRoomMap = {};
 const roomParticipants = {}; // { [roomId]: [ { socketId, userId, userName, peerId } ] }

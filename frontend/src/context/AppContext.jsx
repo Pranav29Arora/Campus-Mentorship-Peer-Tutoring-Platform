@@ -5,6 +5,7 @@ import { bookingService } from '../services/bookingService';
 import { availabilityService } from '../services/availabilityService';
 import { reviewService } from '../services/reviewService';
 import { notificationService } from '../services/notificationService';
+import { getAppSocket } from '../services/socket';
 
 export const AppContext = createContext(null);
 
@@ -17,27 +18,75 @@ export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load notifications and bookings in parallel when user changes
+  // Sync helper function
+  const refreshAllUserData = async () => {
+    if (!user?.id) return;
+    try {
+      const promises = [
+        bookingService.getBookings(user.id, user.role).catch(() => []),
+        notificationService.getNotifications(user.id).catch(() => [])
+      ];
+
+      if (user.role === 'mentor') {
+        promises.push(availabilityService.getAvailableSlots(user.mentorId || user.id).catch(() => []));
+      }
+
+      const results = await Promise.all(promises);
+      if (results[0]) setBookings(results[0]);
+      if (results[1]) setNotifications(results[1]);
+      if (user.role === 'mentor' && results[2]) setAvailability(results[2]);
+    } catch (e) {
+      console.warn('[Realtime Sync] Error refreshing user data:', e);
+    }
+  };
+
+  // Real-time socket coordination & auto-refresh
   useEffect(() => {
-    if (user?.id) {
-      Promise.all([
-        bookingService.getBookings(user.id, user.role).catch(err => {
-          console.error('Failed to fetch bookings:', err);
-          return [];
-        }),
-        notificationService.getNotifications(user.id).catch(err => {
-          console.error('Failed to fetch notifications:', err);
-          return [];
-        })
-      ]).then(([bookingsData, notifsData]) => {
-        setBookings(bookingsData || []);
-        setNotifications(notifsData || []);
-      });
-    } else {
+    if (!user?.id) {
       setBookings([]);
       setNotifications([]);
+      setAvailability([]);
+      return;
     }
-  }, [user?.id, user?.role]);
+
+    // Initial load
+    refreshAllUserData();
+
+    // 1. Socket.io Real-time Event Listeners
+    const socket = getAppSocket();
+
+    const handleBookingChanged = (data) => {
+      console.log('[Realtime] Received booking_updated event:', data);
+      refreshAllUserData();
+    };
+
+    const handleAvailabilityChanged = (data) => {
+      console.log('[Realtime] Received availability_updated event:', data);
+      refreshAllUserData();
+    };
+
+    socket.on('booking_updated', handleBookingChanged);
+    socket.on('availability_updated', handleAvailabilityChanged);
+
+    // 2. Window Focus Auto-Sync (e.g. user returns from email or another tab)
+    const handleFocus = () => {
+      console.log('[Realtime] Tab focused, auto-syncing bookings & availability');
+      refreshAllUserData();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    // 3. Fallback Heartbeat / Polling every 5 seconds to ensure instant UI freshness
+    const pollInterval = setInterval(() => {
+      refreshAllUserData();
+    }, 5000);
+
+    return () => {
+      socket.off('booking_updated', handleBookingChanged);
+      socket.off('availability_updated', handleAvailabilityChanged);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(pollInterval);
+    };
+  }, [user?.id, user?.role, user?.mentorId]);
 
   const fetchMentors = async (filters = {}) => {
     setLoading(true);

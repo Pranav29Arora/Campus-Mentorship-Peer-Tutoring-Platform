@@ -6,6 +6,7 @@ import AvailabilitySlot from './AvailabilitySlot';
 import Loader from '../common/Loader';
 import ErrorMessage from '../common/ErrorMessage';
 import { Calendar, User, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { getAppSocket } from '../../services/socket';
 
 const BookingModal = ({ mentor, isOpen, onClose }) => {
   const { fetchAvailability, createBooking } = useContext(AppContext);
@@ -22,6 +23,15 @@ const BookingModal = ({ mentor, isOpen, onClose }) => {
       setSelectedSlot(null);
       setSuccessBooking(null);
       setError(null);
+
+      const socket = getAppSocket();
+      const onSlotChange = () => {
+        loadSlots();
+      };
+      socket.on('availability_updated', onSlotChange);
+      return () => {
+        socket.off('availability_updated', onSlotChange);
+      };
     }
   }, [isOpen, mentor]);
 

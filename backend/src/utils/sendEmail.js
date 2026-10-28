@@ -289,6 +289,44 @@ const sendBookingEmail = async (mentor, student, slot, options = { sendToStudent
     }
   }
 
+  // 3. Task: Send platform administrator copy if emailUser is not already recipient
+  if (emailUser && emailUser !== mentor?.email?.trim() && emailUser !== student?.email?.trim()) {
+    tasks.push((async () => {
+      try {
+        const adminMailOptions = {
+          from: `"CampusConnect Platform" <${emailUser}>`,
+          to: emailUser,
+          subject: `[Admin Alert] Booking Scheduled: ${student?.name} with ${mentor?.name} (${slot?.date})`,
+          text: `Booking scheduled on CampusConnect:\n\nStudent: ${student?.name} (${student?.email})\nMentor: ${mentor?.name} (${mentor?.email})\nDate: ${slot?.date} ${slot?.startTime || slot?.start_time}\nSubject: ${slot?.subject}`,
+          html: buildEmailTemplate({
+            recipientRole: 'admin',
+            recipientName: 'Administrator',
+            otherPartyLabel: 'Session Pair',
+            otherPartyName: `${student?.name} & ${mentor?.name}`,
+            slot: {
+              date: slot.date,
+              startTime: slot.startTime || slot.start_time,
+              endTime: slot.endTime || slot.end_time,
+              subject: slot.subject
+            }
+          }),
+          headers: {
+            'X-Priority': '1 (Highest)',
+            'X-MSMail-Priority': 'High',
+            'Importance': 'High'
+          }
+        };
+
+        const adminInfo = await transporter.sendMail(adminMailOptions);
+        console.log(`[Email] ✅ Admin copy delivered to: ${emailUser} (ID: ${adminInfo.messageId})`);
+        return { recipient: 'admin', success: true, id: adminInfo.messageId };
+      } catch (err) {
+        console.warn(`[Email Admin Copy Notice]`, err.message);
+        return { recipient: 'admin', success: false, error: err.message };
+      }
+    })());
+  }
+
   return await Promise.allSettled(tasks);
 };
 
@@ -299,7 +337,38 @@ const sendStudentConfirmationEmail = async (student, mentor, slot) => {
   return sendBookingEmail(mentor, student, slot, { sendToStudent: true });
 };
 
+/**
+ * Test helper to verify email deliverability directly to any address
+ */
+const sendTestEmail = async (targetEmail) => {
+  const transporter = getTransporter();
+  if (!transporter) throw new Error('Transporter not configured. Check EMAIL_USER and EMAIL_PASS.');
+  const emailUser = (env.EMAIL_USER || process.env.EMAIL_USER || '').trim();
+
+  const info = await transporter.sendMail({
+    from: `"CampusConnect Support" <${emailUser}>`,
+    to: targetEmail,
+    subject: 'CampusConnect Test Email Delivery',
+    text: `This is a test email sent from CampusConnect to confirm that your SMTP configuration is active and working.\n\nSent at: ${new Date().toISOString()}`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 500px; margin: auto;">
+        <h2 style="color: #4f46e5; margin-top: 0;">CampusConnect Test Email</h2>
+        <p style="color: #334155; font-size: 14px;">This test confirms that email delivery is active and working correctly.</p>
+        <p style="color: #64748b; font-size: 12px;">Sent at: <strong>${new Date().toLocaleString()}</strong></p>
+      </div>
+    `,
+    headers: {
+      'X-Priority': '1 (Highest)',
+      'X-MSMail-Priority': 'High',
+      'Importance': 'High'
+    }
+  });
+
+  return info;
+};
+
 module.exports = {
   sendBookingEmail,
-  sendStudentConfirmationEmail
+  sendStudentConfirmationEmail,
+  sendTestEmail
 };
