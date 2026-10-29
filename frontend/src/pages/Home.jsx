@@ -447,7 +447,7 @@ const Home = () => {
             </Link>
             <Link to="/login">
               <Button variant="outline" size="lg" className="w-full sm:w-44 border-white/40 text-white hover:bg-white/10 font-bold">
-                Try Demo Logins
+                Login
               </Button>
             </Link>
           </div>
