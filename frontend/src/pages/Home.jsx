@@ -34,7 +34,7 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b0f19] text-slate-800 dark:text-slate-100 selection:bg-brand-500 selection:text-white transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-black text-slate-800 dark:text-slate-100 selection:bg-brand-500 selection:text-white transition-colors duration-300">
       <Navbar />
 
       {/* Hero Section */}
@@ -50,7 +50,7 @@ const Home = () => {
             <div className="lg:col-span-7 text-center lg:text-left space-y-6">
               
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-800/90 border border-brand-200 dark:border-brand-800/60 shadow-sm text-brand-700 dark:text-brand-300 text-xs font-bold tracking-wide">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-zinc-900 border border-brand-200 dark:border-brand-800/60 shadow-sm text-brand-700 dark:text-brand-300 text-xs font-bold tracking-wide">
                 <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -80,14 +80,14 @@ const Home = () => {
                   </Button>
                 </Link>
                 <Link to="/register?role=mentor" className="w-full sm:w-auto">
-                  <Button variant="outline" size="lg" className="w-full sm:w-48 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700">
+                  <Button variant="outline" size="lg" className="w-full sm:w-48 bg-white dark:bg-zinc-900 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800">
                     Become a Mentor
                   </Button>
                 </Link>
               </div>
 
               {/* Trust Indicators / Quick Stats */}
-              <div className="pt-6 border-t border-slate-200/80 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-600 font-semibold">
+              <div className="pt-6 border-t border-slate-200/80 dark:border-zinc-800 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-600 dark:text-slate-400 font-semibold">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
                   <span>100% Peer-Verified</span>
@@ -108,7 +108,7 @@ const Home = () => {
             <div className="lg:col-span-5 relative flex justify-center">
               
               {/* Central Hero Image Card */}
-              <div className="relative rounded-3xl p-2.5 bg-white shadow-2xl border border-slate-200/80 max-w-md w-full">
+              <div className="relative rounded-3xl p-2.5 bg-white dark:bg-zinc-900 shadow-2xl border border-slate-200/80 dark:border-zinc-800 max-w-md w-full">
                 <div className="overflow-hidden rounded-2xl relative aspect-[4/3] group">
                   <img
                     src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=900&auto=format&fit=crop&q=80"
@@ -125,7 +125,7 @@ const Home = () => {
                 </div>
 
                 {/* Floating Badge 1: Live Call (Top Left) */}
-                <div className="absolute -top-6 -left-6 sm:-left-8 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-200/90 animate-float flex items-center gap-3">
+                <div className="absolute -top-6 -left-6 sm:-left-8 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-200/90 dark:border-zinc-700 animate-float flex items-center gap-3">
                   <div className="relative">
                     <img
                       src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100"
@@ -136,8 +136,8 @@ const Home = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-slate-800">Priya Singh</span>
-                      <span className="text-[10px] bg-emerald-50 text-emerald-600 font-bold px-1.5 py-0.5 rounded">Live Call</span>
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Priya Singh</span>
+                      <span className="text-[10px] bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 font-bold px-1.5 py-0.5 rounded">Live Call</span>
                     </div>
                     <div className="flex items-center gap-1 mt-1">
                       <div className="flex items-end gap-0.5 h-3">
@@ -146,22 +146,22 @@ const Home = () => {
                         <span className="w-1 bg-brand-500 rounded-full animate-wave-3"></span>
                         <span className="w-1 bg-brand-500 rounded-full animate-wave-4"></span>
                       </div>
-                      <span className="text-[10px] text-slate-500 font-medium ml-1">React Hooks Viva</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium ml-1">React Hooks Viva</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Floating Badge 2: Rating & Sessions (Bottom Right) */}
-                <div className="absolute -bottom-6 -right-4 sm:-right-8 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-200/90 animate-float-delayed flex items-center gap-3">
-                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-200/70">
+                <div className="absolute -bottom-6 -right-4 sm:-right-8 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-slate-200/90 dark:border-zinc-700 animate-float-delayed flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center border border-amber-200/70 dark:border-amber-800/50">
                     <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
                   </div>
                   <div>
                     <div className="flex items-center gap-1">
-                      <span className="text-sm font-extrabold text-slate-900">4.9 / 5.0</span>
-                      <span className="text-[10px] font-bold text-amber-600">Top Rated</span>
+                      <span className="text-sm font-extrabold text-slate-900 dark:text-slate-100">4.9 / 5.0</span>
+                      <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">Top Rated</span>
                     </div>
-                    <p className="text-[11px] text-slate-500 font-semibold">1,200+ Sessions Done</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">1,200+ Sessions Done</p>
                   </div>
                 </div>
 
@@ -174,23 +174,23 @@ const Home = () => {
       </section>
 
       {/* Platform Statistics */}
-      <section className="py-10 bg-white border-y border-slate-200/80 px-4 sm:px-6 lg:px-8 shadow-xs">
+      <section className="py-10 bg-white dark:bg-black border-y border-slate-200/80 dark:border-zinc-800 px-4 sm:px-6 lg:px-8 shadow-xs">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          <div className="p-4 rounded-2xl hover:bg-slate-50 transition-colors">
-            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans tracking-tight">500+</h3>
-            <p className="text-xs text-brand-600 mt-1 uppercase tracking-wider font-bold">Mentees Enrolled</p>
+          <div className="p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors">
+            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">500+</h3>
+            <p className="text-xs text-brand-600 dark:text-brand-400 mt-1 uppercase tracking-wider font-bold">Mentees Enrolled</p>
           </div>
-          <div className="p-4 rounded-2xl hover:bg-slate-50 transition-colors">
-            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans tracking-tight">80+</h3>
-            <p className="text-xs text-brand-600 mt-1 uppercase tracking-wider font-bold">Verified Mentors</p>
+          <div className="p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors">
+            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">80+</h3>
+            <p className="text-xs text-brand-600 dark:text-brand-400 mt-1 uppercase tracking-wider font-bold">Verified Mentors</p>
           </div>
-          <div className="p-4 rounded-2xl hover:bg-slate-50 transition-colors">
-            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans tracking-tight">1,200+</h3>
-            <p className="text-xs text-brand-600 mt-1 uppercase tracking-wider font-bold">Sessions Completed</p>
+          <div className="p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors">
+            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">1,200+</h3>
+            <p className="text-xs text-brand-600 dark:text-brand-400 mt-1 uppercase tracking-wider font-bold">Sessions Completed</p>
           </div>
-          <div className="p-4 rounded-2xl hover:bg-slate-50 transition-colors">
-            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans tracking-tight">4.8★</h3>
-            <p className="text-xs text-brand-600 mt-1 uppercase tracking-wider font-bold">Average Star Rating</p>
+          <div className="p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-zinc-900 transition-colors">
+            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">4.8★</h3>
+            <p className="text-xs text-brand-600 dark:text-brand-400 mt-1 uppercase tracking-wider font-bold">Average Star Rating</p>
           </div>
         </div>
       </section>
@@ -198,13 +198,13 @@ const Home = () => {
       {/* How It Works */}
       <section id="how-it-works" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-12">
         <div className="space-y-3 max-w-2xl mx-auto">
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
+          <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 px-3 py-1 rounded-full border border-brand-200 dark:border-brand-800/60">
             Simple 3-Step Process
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">
             How CampusConnect Works
           </h2>
-          <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
             Get targeted tutoring support and semester exam prep from senior students in three simple steps.
           </p>
         </div>
@@ -212,37 +212,37 @@ const Home = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Step 1 */}
-          <div className="bg-white p-8 rounded-3xl border border-slate-200/90 relative shadow-sm hover:shadow-xl hover:border-brand-300 transition-all duration-300 transform hover:-translate-y-1.5 text-left group">
-            <span className="absolute top-6 right-6 text-5xl font-extrabold text-slate-100 group-hover:text-brand-100/60 transition-colors">01</span>
-            <div className="w-14 h-14 bg-brand-50 border border-brand-200 text-brand-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <div className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-slate-200/90 dark:border-zinc-800 relative shadow-sm hover:shadow-xl hover:border-brand-300 dark:hover:border-brand-700 transition-all duration-300 transform hover:-translate-y-1.5 text-left group">
+            <span className="absolute top-6 right-6 text-5xl font-extrabold text-slate-100 dark:text-zinc-800 group-hover:text-brand-100/60 dark:group-hover:text-brand-900/60 transition-colors">01</span>
+            <div className="w-14 h-14 bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800/60 text-brand-600 dark:text-brand-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Users className="w-7 h-7" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Find Your Match</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Find Your Match</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Browse top mentors by department, check real feedback ratings, review subject specializations, and find who cleared your exact course.
             </p>
           </div>
 
           {/* Step 2 */}
-          <div className="bg-white p-8 rounded-3xl border border-slate-200/90 relative shadow-sm hover:shadow-xl hover:border-indigo-300 transition-all duration-300 transform hover:-translate-y-1.5 text-left group">
-            <span className="absolute top-6 right-6 text-5xl font-extrabold text-slate-100 group-hover:text-indigo-100/60 transition-colors">02</span>
-            <div className="w-14 h-14 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <div className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-slate-200/90 dark:border-zinc-800 relative shadow-sm hover:shadow-xl hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-300 transform hover:-translate-y-1.5 text-left group">
+            <span className="absolute top-6 right-6 text-5xl font-extrabold text-slate-100 dark:text-zinc-800 group-hover:text-indigo-100/60 dark:group-hover:text-indigo-900/60 transition-colors">02</span>
+            <div className="w-14 h-14 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Calendar className="w-7 h-7" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Book a Session</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Book a Session</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Pick an open availability slot on the mentor's live calendar. Automatic collision guards ensure zero schedule overlaps with your classes.
             </p>
           </div>
 
           {/* Step 3 */}
-          <div className="bg-white p-8 rounded-3xl border border-slate-200/90 relative shadow-sm hover:shadow-xl hover:border-purple-300 transition-all duration-300 transform hover:-translate-y-1.5 text-left group">
-            <span className="absolute top-6 right-6 text-5xl font-extrabold text-slate-100 group-hover:text-purple-100/60 transition-colors">03</span>
-            <div className="w-14 h-14 bg-purple-50 border border-purple-200 text-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <div className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-slate-200/90 dark:border-zinc-800 relative shadow-sm hover:shadow-xl hover:border-purple-300 dark:hover:border-purple-700 transition-all duration-300 transform hover:-translate-y-1.5 text-left group">
+            <span className="absolute top-6 right-6 text-5xl font-extrabold text-slate-100 dark:text-zinc-800 group-hover:text-purple-100/60 dark:group-hover:text-purple-900/60 transition-colors">03</span>
+            <div className="w-14 h-14 bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800/60 text-purple-600 dark:text-purple-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Video className="w-7 h-7" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Join Peer Call</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Join Peer Call</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
               Enter your dashboard, hop into the built-in WebRTC video room, share your code screen, and solve tricky bugs collaboratively.
             </p>
           </div>
@@ -251,17 +251,17 @@ const Home = () => {
       </section>
 
       {/* Benefits Section */}
-      <section id="benefits" className="py-20 bg-slate-100/70 border-t border-slate-200/80 px-4 sm:px-6 lg:px-8">
+      <section id="benefits" className="py-20 bg-slate-100/70 dark:bg-zinc-950 border-t border-slate-200/80 dark:border-zinc-800 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           
           <div className="text-left space-y-6">
-            <span className="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 px-3 py-1 rounded-full border border-brand-200 dark:border-brand-800/60">
               Why Senior Peer Mentoring?
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight leading-tight">
               Seniors cleared the exact syllabus you're facing now.
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
               Professors teach concepts, but seniors teach you how to ace the practicals, avoid viva traps, and structure resume projects that get internship shortlisted.
             </p>
             
@@ -272,8 +272,8 @@ const Home = () => {
                 'Peer-level comfort to ask foundational questions without hesitation',
                 'Internship referral network across tech clubs and hackathons'
               ].map((benefit, idx) => (
-                <div key={idx} className="flex items-start gap-3 text-sm text-slate-700 font-medium">
-                  <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div key={idx} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300 font-medium">
+                  <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <CheckCircle className="w-3.5 h-3.5" />
                   </div>
                   <span>{benefit}</span>
@@ -284,27 +284,27 @@ const Home = () => {
           
           {/* Testimonial Spotlight Card */}
           <div className="relative">
-            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-left relative overflow-hidden">
+            <div className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-slate-200 dark:border-zinc-800 shadow-xl text-left relative overflow-hidden">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full">
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 px-3 py-1 rounded-full">
                   Verified Student Review
                 </span>
                 <RatingStars rating={5} size={16} />
               </div>
               
-              <p className="text-base sm:text-lg text-slate-700 italic mb-6 leading-relaxed font-normal">
+              <p className="text-base sm:text-lg text-slate-700 dark:text-slate-300 italic mb-6 leading-relaxed font-normal">
                 "I was really struggling with React state and async APIs in CS-202. My mentor Priya scheduled a 45-minute live call, screenshared the component hierarchy, and reviewed my code line-by-line. I got an A on my viva exam!"
               </p>
               
-              <div className="flex items-center gap-3.5 pt-4 border-t border-slate-100">
+              <div className="flex items-center gap-3.5 pt-4 border-t border-slate-100 dark:border-zinc-800">
                 <img
                   src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120"
                   alt="Arjun Mehta"
                   className="w-12 h-12 rounded-full border-2 border-brand-200 object-cover"
                 />
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">Arjun Mehta</h4>
-                  <p className="text-xs text-slate-500 font-medium">2nd Year • Computer Science & Engg</p>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Arjun Mehta</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">2nd Year • Computer Science & Engg</p>
                 </div>
               </div>
             </div>
@@ -319,13 +319,13 @@ const Home = () => {
       {/* Popular Mentors Grid */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-12">
         <div className="space-y-3 max-w-2xl mx-auto">
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
+          <span className="text-xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 px-3 py-1 rounded-full border border-brand-200 dark:border-brand-800/60">
             Top Rated Tutors
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 font-sans tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">
             Popular MERN-Stack Mentors
           </h2>
-          <p className="text-slate-600 text-sm sm:text-base">
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
             Connect with highly rated senior students ready to guide you this week.
           </p>
         </div>
@@ -334,7 +334,7 @@ const Home = () => {
           {popularMentors.map(mentor => (
             <div 
               key={mentor.id} 
-              className="bg-white rounded-3xl p-6 flex flex-col justify-between text-left border border-slate-200 shadow-sm hover:shadow-xl hover:border-brand-300 transition-all duration-300 transform hover:-translate-y-1.5 group"
+              className="bg-white dark:bg-zinc-900 rounded-3xl p-6 flex flex-col justify-between text-left border border-slate-200 dark:border-zinc-800 shadow-sm hover:shadow-xl hover:border-brand-300 dark:hover:border-brand-700 transition-all duration-300 transform hover:-translate-y-1.5 group"
             >
               <div>
                 <div className="flex items-center gap-3.5 mb-4">
@@ -347,33 +347,33 @@ const Home = () => {
                     <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
                       {mentor.name}
                     </h4>
-                    <p className="text-xs text-slate-500 font-medium">
-                      {mentor.department} • <span className="text-brand-600 font-semibold">Year {mentor.year}</span>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      {mentor.department} • <span className="text-brand-600 dark:text-brand-400 font-semibold">Year {mentor.year}</span>
                     </p>
                   </div>
                 </div>
                 
-                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed italic mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed italic mb-4 bg-slate-50 dark:bg-zinc-800 p-2.5 rounded-xl border border-slate-100 dark:border-zinc-700">
                   "{mentor.bio}"
                 </p>
 
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   {mentor.subjects.slice(0, 3).map(sub => (
-                    <span key={sub} className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-600 font-medium">
+                    <span key={sub} className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-slate-400 font-medium">
                       {sub}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+              <div className="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-zinc-800">
                 <div className="flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                  <span className="text-xs font-bold text-slate-800">{mentor.rating}</span>
-                  <span className="text-[10px] text-slate-400">({mentor.totalSessions} sessions)</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{mentor.rating}</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">({mentor.totalSessions} sessions)</span>
                 </div>
                 <Link 
                   to={`/mentor/${mentor.id}`} 
@@ -389,7 +389,7 @@ const Home = () => {
 
         <div className="pt-4">
           <Link to="/mentors">
-            <Button variant="outline" size="md" className="bg-white hover:bg-slate-50 shadow-xs" icon={ArrowRight}>
+            <Button variant="outline" size="md" className="bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 dark:border-zinc-700 dark:text-slate-200 shadow-xs" icon={ArrowRight}>
               View All Mentors
             </Button>
           </Link>
@@ -397,13 +397,13 @@ const Home = () => {
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 bg-white border-t border-slate-200/80 px-4 text-center">
+      <section className="py-16 bg-white dark:bg-zinc-950 border-t border-slate-200/80 dark:border-zinc-800 px-4 text-center">
         <div className="max-w-7xl mx-auto space-y-8">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 font-sans tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-sans tracking-tight">
               Explore Popular Subjects & Domains
             </h2>
-            <p className="text-slate-500 text-sm mt-1">Select a subject to instantly discover available peer mentors.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Select a subject to instantly discover available peer mentors.</p>
           </div>
           
           <div className="flex flex-wrap justify-center gap-2.5">
@@ -414,7 +414,7 @@ const Home = () => {
               <Link 
                 key={cat} 
                 to={`/mentors?subject=${encodeURIComponent(cat)}`}
-                className="px-4 py-2.5 bg-slate-50 border border-slate-200 text-sm font-semibold rounded-xl text-slate-700 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50/60 transition-all duration-200 shadow-xs hover:-translate-y-0.5"
+                className="px-4 py-2.5 bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-sm font-semibold rounded-xl text-slate-700 dark:text-slate-300 hover:text-brand-600 dark:hover:text-brand-400 hover:border-brand-300 dark:hover:border-brand-700 hover:bg-brand-50/60 dark:hover:bg-brand-900/20 transition-all duration-200 shadow-xs hover:-translate-y-0.5"
               >
                 {cat}
               </Link>
