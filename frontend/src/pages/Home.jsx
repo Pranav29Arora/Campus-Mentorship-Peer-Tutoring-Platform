@@ -219,7 +219,7 @@ const Home = () => {
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Find Your Match</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Browse top mentors by department, check real feedback ratings, review subject specializations, and find who cleared your exact course.
+              Filter by department, subject, and rating to find a senior who cleared your exact course.
             </p>
           </div>
 
@@ -231,7 +231,7 @@ const Home = () => {
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Book a Session</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Pick an open availability slot on the mentor's live calendar. Automatic collision guards ensure zero schedule overlaps with your classes.
+              Pick a free slot on the mentor's live calendar — no scheduling conflicts, ever.
             </p>
           </div>
 
@@ -243,7 +243,7 @@ const Home = () => {
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Join Peer Call</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Enter your dashboard, hop into the built-in WebRTC video room, share your code screen, and solve tricky bugs collaboratively.
+              Jump into a built-in video call, share your screen, and solve problems together.
             </p>
           </div>
 
